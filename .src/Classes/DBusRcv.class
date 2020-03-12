@@ -1,0 +1,15 @@
+' Gambas class file
+
+Inherits DBusObject
+Create Static
+
+Public Function Receiver(myString As String) As Boolean
+
+  If myString Then
+    frmMain.ParseOTPURL(myString, False)
+  Else
+    frmMain.Activate
+  Endif
+  Return True
+
+End

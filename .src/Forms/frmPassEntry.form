@@ -1,0 +1,57 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,49,16)
+  Text = ("Password")
+  Icon = Picture["icon.png"]
+  Persistent = True
+  Resizable = False
+  Arrangement = Arrange.Fill
+  AutoResize = True
+  Spacing = True
+  Margin = True
+  Padding = 6
+  { pnlDialog HBox
+    MoveScaled(0,0,49,16)
+    AutoResize = True
+    Spacing = True
+    { pctPassword PictureBox
+      MoveScaled(1,1,4.5714,4.5714)
+      AutoResize = True
+      Padding = 4
+      Picture = Picture["key.png"]
+    }
+    { pnlInput VBox
+      MoveScaled(7,1,41,14)
+      AutoResize = True
+      Spacing = True
+      { lblPassword Label
+        MoveScaled(0,0,7,5.7143)
+        AutoResize = True
+        Text = ("Label1")
+        Alignment = Align.TopLeft
+      }
+      { txtPassword ButtonBox
+        MoveScaled(0,5,15,4)
+      }
+      { pnlButtons HBox
+        MoveScaled(0,10,41,4)
+        AutoResize = True
+        Spacing = True
+        { spButtons Spring
+          MoveScaled(4,0,4,4)
+        }
+        { cmdOK Button
+          MoveScaled(14,0,13,4)
+          Text = ("OK")
+          Default = True
+        }
+        { cmdCancel Button
+          MoveScaled(28,0,13,4)
+          Text = ("Cancel")
+          Cancel = True
+        }
+      }
+    }
+  }
+}

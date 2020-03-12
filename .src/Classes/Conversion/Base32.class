@@ -1,0 +1,60 @@
+' Gambas class file
+
+Create Private
+
+Static Private Const Base32AllowedCharacters As String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+
+Static Public Function ByteArrayToBase32String(bInput As Byte[], Optional addPadding As Boolean = True) As String
+
+  Dim bVal As Byte
+  Dim I, pad5Len As Integer
+  Dim bits, result, bChunk, bChar As String
+
+  If Not bInput Then Return Null
+  If bInput.Length = 0 Then Return Null
+  pad5Len = CInt(Ceil((bInput.Length * 8) / 5.0) * 5)
+  bits = Null
+  For I = 0 To bInput.Length - 1
+    bits &= Bin$(bInput[I], 8)
+  Next
+  bits = bits & String$(pad5Len - Len(bits), "0")
+  result = Null
+  For I = 0 To Floor(Len(bits) / 5) - 1
+    bChunk = Mid$(bits, (I * 5) + 1, 5)
+    bVal = Val("%" & bChunk)
+    bChar = Mid$(Base32AllowedCharacters, bVal + 1, 1)
+    result &= bChar
+  Next
+  If addPadding Then
+    Dim pad8Len As Integer = CInt(Ceil(Len(Result) / 8.0) * 8)
+    result = result & String$(pad8len - Len(Result), "=")
+  Endif
+  Return result
+
+End
+
+Static Public Function Base32StringToByteArray(sInput As String) As Byte[]
+
+  Dim iChunk As Byte
+  Dim I, iIndex As Integer
+  Dim bits, bChunk As String
+  Dim result As Byte[]
+
+  If Not sInput Then Return Null
+  While Right$(sInput, 1) = "="
+    sInput = Left$(sInput, -1)
+  Wend
+  sInput = UCase$(sInput)
+  For I = 0 To Len(sInput) - 1
+    iIndex = InStr(Base32AllowedCharacters, Mid$(sInput, I + 1, 1)) - 1
+    bits &= Bin$(iIndex, 5)
+  Next
+  result = New Byte[]
+  For I = 0 To Floor(Len(bits) / 8) - 1
+    bChunk = Mid$(bits, (I * 8) + 1, 8)
+    iChunk = Val("%" & bChunk)
+    result.Push(iChunk)
+  Next
+  Return result
+
+End

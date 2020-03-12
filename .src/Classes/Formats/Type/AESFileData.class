@@ -1,0 +1,10 @@
+' Gambas class file
+
+Public DecryptedFile As Byte[]
+Public Problem As Byte
+
+Public Sub _new(Optional err As Byte = 0)
+
+  problem = err
+
+End

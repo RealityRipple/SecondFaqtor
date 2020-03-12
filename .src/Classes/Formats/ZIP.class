@@ -1,0 +1,621 @@
+' Gambas class file
+
+Private sFiles As ZipFile[]
+Private UsingAES As Byte
+Private AEXVersion As Byte
+
+Public Sub _new(Optional strength As Byte = AESStrength.AES256, Optional Version As Byte = 2)
+
+  sFiles = New ZipFile[]
+  UsingAES = strength
+  AEXVersion = Version
+
+End
+
+Public Sub AddData(sName As String, bData As Byte[], dTime As Date, Optional sComment As String = Null)
+
+  Dim zFile As ZipFile
+
+  zFile = New ZipFile(sName, sComment, bData, dTime)
+  sFiles.Push(zFile)
+
+End
+
+Public Sub AddFile(sPath As String, Optional sComment As String = Null)
+
+  Dim zFile As ZipFile
+
+  zFile = New ZipFile(sPath, sComment)
+  sFiles.Push(zFile)
+
+End
+
+Public Sub RemoveFile(sName As String)
+
+  Dim I As Integer
+
+  For I = 0 To sFiles.Length - 1
+    If String.LCase(sFiles[I].Name) = String.LCase(sName) Then
+      sFiles.Remove(I)
+      Break
+    Endif
+  Next
+
+End
+
+Static Private Sub AddRange(ByRef dest As Byte[], src As Byte[], Optional Length As Integer = -1)
+
+  Dim I As Integer
+
+  If Length = -1 Then Length = src.Length
+  For I = 0 To Length - 1
+    dest.Push(src[I])
+  Next
+
+End
+
+Public Function Encrypt(sPassword As String, Optional sComment As String = Null, Optional Hash As Byte = HashAlgorithm.SHA1, Optional Iterations As Long = 1000) As Byte[]
+
+  Dim I, cdrStart, cdrLen As Integer
+  Dim bZip, bEnc, bCDR, bEoCDR As Byte[]
+  Dim iAESKey As AESKeyData
+  Dim zFile As ZipFile
+
+  If sFiles.Length > 1 Then
+    frmProgress.Prepare_Encrypt
+    frmProgress.Show
+    Wait 0.05
+  End If
+  bZip = New Byte[]
+  For I = 0 To sFiles.Length - 1
+    zFile = sFiles[I]
+    zFile.Offset = bZip.Length
+    iAESKey = GenerateKey(sPassword, UsingAES,, Hash, Iterations)
+    bEnc = EncryptFile(zFile, iAESKey, Hash, Iterations)
+    zFile.EncryptedLength = bEnc.Length
+    AddRange(ByRef bZip, GenerateFileHeader(zFile))
+    AddRange(ByRef bZip, bEnc)
+    sFiles[I] = zFile
+    If sFiles.Length > 1 Then frmProgress.Progress = CFloat((I + 1) / sFiles.Length)
+    Wait
+  Next
+  cdrStart = bZip.Length
+  bCDR = GenerateCDR()
+  cdrLen = bCDR.Length
+  AddRange(ByRef bZip, bCDR)
+  bEoCDR = GenerateEoCDR(cdrStart, cdrLen, sComment)
+  AddRange(ByRef bZip, bEoCDR)
+  If sFiles.Length > 1 Then
+    frmProgress.Hide
+    frmProgress.Delete
+  End If
+  Return bZip
+
+End
+
+Private Function GenerateFileHeader(zFile As ZipFile) As Byte[]
+
+  Dim fileCRC As Integer
+  Dim bFile, bName, bExtra As Byte[]
+
+  bFile = New Byte[]
+  AddRange(ByRef bFile, BitConverter.GetBytes(CInt(&4034B50&)))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(&333&)))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(&1&)))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(99)))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(TimeToMSDOS(zFile.Modified))))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(DateToMSDOS(zFile.Modified))))
+  If AEXVersion = 2 Then
+    AddRange(ByRef bFile, BitConverter.GetBytes(CInt(&0&)))
+  Else
+    fileCRC = CRC32.ComputeChecksum(zFile.Data)
+    AddRange(ByRef bFile, BitConverter.GetBytes(fileCRC))
+  Endif
+  AddRange(ByRef bFile, BitConverter.GetBytes(CInt(zFile.EncryptedLength)))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CInt(zFile.Data.Length)))
+  bName = ByteString.String8ToByteArray(zFile.Name)
+  bExtra = GenerateExtraField_AES(AEXVersion)
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(bName.Length)))
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(bExtra.Length)))
+  AddRange(ByRef bFile, bName)
+  AddRange(ByRef bFile, bExtra)
+  Return bFile
+
+End
+
+Private Function EncryptFile(zFile As ZipFile, iAESKey As AESKeyData, Hash As Byte, Iterations As Long) As Byte[]
+
+  Dim bFile, bEnc, bAuth As Byte[]
+
+  bFile = New Byte[]
+  AddRange(ByRef bFile, iAESKey.Salt)
+  AddRange(ByRef bFile, BitConverter.GetBytes(CShort(iAESKey.PassVerifier)))
+  bEnc = AESCTR(zFile.Data, iAESKey.PassKey)
+  AddRange(ByRef bFile, bEnc)
+  If Not (Hash = HashAlgorithm.SHA1 And Iterations = 1000) Then
+    bFile.Push(Hash)
+    AddRange(ByRef bFile, BitConverter.GetBytes(Iterations))
+  Endif
+  bAuth = Byte[].FromString(cOpenSSL.HMACSHA(ByteString.ByteArrayToString(iAESKey.AuthKey), ByteString.ByteArrayToString(bEnc), "SHA1"))
+  AddRange(ByRef bFile, bAuth, 10)
+  Return bFile
+
+End
+
+Private Function GenerateCDR() As Byte[]
+
+  Dim I, fileCRC As Integer
+  Dim bCDR, bName, bExtra, bComment As Byte[]
+
+  bCDR = New Byte[]
+  For I = 0 To sFiles.Length - 1
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(&2014B50&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(&33F&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(&333&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(&1&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(99)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(TimeToMSDOS(sFiles[I].Modified))))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(DateToMSDOS(sFiles[I].Modified))))
+    If AEXVersion = 2 Then
+      AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(&0&)))
+    Else
+      fileCRC = CRC32.ComputeChecksum(sFiles(I).Data)
+      AddRange(ByRef bCDR, BitConverter.GetBytes(fileCRC))
+    Endif
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(sFiles[I].EncryptedLength)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(sFiles[I].Data.Length)))
+    bName = ByteString.String8ToByteArray(sFiles[I].Name)
+    bExtra = New Byte[]
+    AddRange(ByRef bExtra, GenerateExtraField_NTFS(sFiles[I]))
+    AddRange(ByRef bExtra, GenerateExtraField_AES(AEXVersion))
+    bComment = New Byte[]
+    If sFiles[I].Comment Then bComment = ByteString.String8ToByteArray(sFiles(I).Comment)
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(bName.Length)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(bExtra.Length)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(bComment.Length)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(&0&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(&1&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(&20&)))
+    AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(sFiles[I].Offset)))
+    AddRange(ByRef bCDR, bName)
+    AddRange(ByRef bCDR, bExtra)
+    AddRange(ByRef bCDR, bComment)
+  Next
+  Return bCDR
+
+End
+
+Static Private Function FileTime(dFrom As Date) As Long
+
+  Dim lMS As Long
+  Dim dEpoch As Date
+
+  dEpoch = CDate("1/1/1601")
+  lMS = CLong((CFloat(dFrom) - CFloat(dEpoch)) * 60 * 60 * 24 * 1000)
+  Return lMS * 10000
+
+End
+
+Private Function GenerateExtraField_NTFS(zFile As ZipFile) As Byte[]
+
+  Dim bNTFS As Byte[]
+
+  bNTFS = New Byte[]
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(CShort(&A&)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(CShort(&20&)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(CInt(&0&)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(CShort(&1&)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(CShort(&18&)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(FileTime(zFile.Modified)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(FileTime(zFile.Accessed)))
+  AddRange(ByRef bNTFS, BitConverter.GetBytes(FileTime(zFile.Created)))
+  Return bNTFS
+
+End
+
+Private Function GenerateExtraField_AES(ver As Byte) As Byte[]
+
+  Dim bAES As Byte[]
+
+  bAES = New Byte[]
+  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&9901&)))
+  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&7&)))
+  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(ver)))
+  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&4541&)))
+  bAES.Push(UsingAES)
+  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&0&)))
+  Return bAES
+
+End
+
+Private Function GenerateEoCDR(cdrStart As Integer, cdrLen As Integer, Optional comment As String = Null) As Byte[]
+
+  Dim bEoCDR, bComment As Byte[]
+
+  bEoCDR = New Byte[]
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CInt(&6054B50&)))
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CShort(&0&)))
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CShort(&0&)))
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CShort(sFiles.Length)))
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CShort(sFiles.Length)))
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CInt(cdrLen)))
+  AddRange(ByRef bEoCDR, BitConverter.GetBytes(CInt(cdrStart)))
+  If Not comment Then
+    AddRange(ByRef bEoCDR, BitConverter.GetBytes(CShort(&0&)))
+  Else
+    bComment = ByteString.String8ToByteArray(comment)
+    AddRange(ByRef bEoCDR, BitConverter.GetBytes(CShort(bComment.Length)))
+    AddRange(ByRef bEoCDR, bComment)
+  Endif
+  Return bEoCDR
+
+End
+
+Static Public Function Decrypt(bData As Byte[], sPassword As String) As ZipFile[]
+
+  Dim I, pIDX, pCount, iDWORD As Integer
+  Dim zFile As ZipFile
+  Dim sFileList As ZipFile[]
+
+  For I = bData.Length - 4 To 0 Step -1
+    iDWORD = BitConverter.GetInteger(bData, I)
+    Select Case iDWORD
+      Case &4034B50&
+        'file
+        Break
+      Case &2014B50&
+        'cdr entry
+        Break
+      Case &6054B50&
+        pCount = BitConverter.GetShort(bData, I + 8)
+        Break
+    End Select
+    iDWORD = 0
+  Next
+
+  If pCount > 1 Then
+    frmProgress.Prepare_Decrypt
+    frmProgress.Show
+    Wait 0.05
+  End If
+
+  sFileList = New ZipFile[]
+  For I = 0 To bData.Length - 4
+    iDWORD = BitConverter.GetInteger(bData, I)
+    Select Case iDWORD
+      Case &4034B50&
+        pIDX += 1
+        zFile = ParseFileInfo(bData, sPassword, ByRef I)
+        If pCount > 1 Then frmProgress.Progress = 1 - CFloat(pIDX / pCount)
+        Wait
+        If zFile.Problem = 3 Then
+          If pCount > 1 Then
+            frmProgress.Hide
+            frmProgress.Delete
+          End If
+          Message.Error(("Unable to decrypt this backup. Please double-check your password."))
+          Return []
+        Endif
+        If Not (zFile.Problem = 0) Then Continue
+        If zFile.Data.Length < 1 Then Continue
+        sFileList.Push(zFile)
+      Case &2014B50&
+        'cdr entry
+        Break
+      Case &6054B50&
+        'eocdr
+        Break
+    End Select
+    iDWORD = 0
+  Next
+  If pCount > 1 Then
+    frmProgress.Hide
+    frmProgress.Delete
+  End If
+  Return sFileList
+
+End
+
+Static Private Function ParseFileInfo(bData As Byte[], sPassword As String, ByRef iStart As Integer) As ZipFile
+
+  Dim AEXVer As Byte
+  Dim iVer, iGenFlags, iCompress, iModTime, iModDate, iFileName, iExtraField As Short
+  Dim I, iPos, iDWORD, iCRC, trueCRC, iCompressed, iUncompressed As Integer
+  Dim sFileName As String
+  Dim bExtraField, bCompressed As Byte[]
+  Dim zFile As ZipFile
+  Dim decFile As AESFileData
+
+  AEXVer = 0
+  zFile = New ZipFile(Null)
+  zFile.Name = Null
+  zFile.Comment = Null
+  zFile.Data = []
+  zFile.Offset = 0
+  zFile.EncryptedLength = 0
+  zFile.Created = CDate("1/1/1601")
+  zFile.Modified = CDate("1/1/1601")
+  zFile.Accessed = CDate("1/1/1601")
+  zFile.Problem = 1
+  iPos = iStart
+  If bData.Length <= iPos + 4 Then Return zFile
+  iDWORD = BitConverter.GetInteger(bData, iPos)
+  iPos += 4
+  If Not (iDWORD = &4034B50&) Then Return zFile
+  zFile.Offset = iStart
+  If bData.Length <= iPos + 2 Then Return zFile
+  iVer = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If (iVer And &FF&) > &33& Then Return zFile
+  If bData.Length <= iPos + 2 Then Return zFile
+  iGenFlags = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If Not ((iGenFlags And &1&) = &1&) Then Return zFile
+  If bData.Length <= iPos + 2 Then Return zFile
+  iCompress = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If Not (iCompress = 99) Then Return zFile
+  If bData.Length <= iPos + 2 Then Return zFile
+  iModTime = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If bData.Length <= iPos + 2 Then Return zFile
+  iModDate = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If bData.Length <= iPos + 4 Then Return zFile
+  iCRC = BitConverter.GetInteger(bData, iPos)
+  iPos += 4
+  If iCRC = 0 Then
+    AEXVer = 2
+  Else
+    AEXVer = 1
+  Endif
+  If bData.Length <= iPos + 4 Then Return zFile
+  iCompressed = BitConverter.GetInteger(bData, iPos)
+  iPos += 4
+  zFile.EncryptedLength = iCompressed
+  If bData.Length <= iPos + 4 Then Return zFile
+  iUncompressed = BitConverter.GetInteger(bData, iPos)
+  iPos += 4
+  If bData.Length <= iPos + 2 Then Return zFile
+  iFileName = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If iFileName < 1 Then Return zFile
+  If bData.Length <= iPos + 2 Then Return zFile
+  iExtraField = BitConverter.GetShort(bData, iPos)
+  iPos += 2
+  If bData.Length <= iPos + iFileName Then Return zFile
+  sFileName = ByteString.ByteArrayToString8(bData, iPos, iFileName)
+  iPos += iFileName
+  If bData.Length <= iPos + iExtraField Then Return zFile
+  bExtraField = New Byte[iExtraField]
+  For I = 0 To iExtraField - 1
+    bExtraField[I] = bData[iPos + I]
+  Next
+  iPos += iExtraField
+  If bData.Length <= iPos + iCompressed Then Return zFile
+  bCompressed = New Byte[iCompressed]
+  For I = 0 To iCompressed - 1
+    bCompressed[I] = bData[iPos + I]
+  Next
+  iPos += iCompressed
+  decFile = DecryptFile(bCompressed, sPassword, iUncompressed)
+  If Not (decFile.Problem = 0) Then
+    zFile.Problem = decFile.Problem
+    Return zFile
+  Endif
+  If AEXVer = 1 Then
+    trueCRC = CRC32.ComputeChecksum(decFile.DecryptedFile)
+    If Not (trueCRC = iCRC) Then
+      zFile.Problem = 2
+      Return zFile
+    Endif
+  Endif
+  zFile.Name = sFileName
+  zFile.Data = decFile.DecryptedFile
+  zFile.Modified = MSDOSToDateTime(iModDate, iModTime)
+  iStart = iPos - 1
+  zFile.Problem = 0
+  Return zFile
+
+End
+
+Static Private Function DecryptFile(bEncrypted As Byte[], sPassword As String, TrueDataLength As Integer) As AESFileData
+
+  Dim hash, iAESBits As Byte
+  Dim iPassVerifier As Short
+  Dim I, iSaltLen, iPBKLen As Integer
+  Dim iterations As Long
+  Dim bSalt, bEnc, bAuthMAC, bAuthCompare As Byte[]
+  Dim iAESKey As AESKeyData
+  Dim ret As AESFileData
+
+  iSaltLen = bEncrypted.Length - TrueDataLength - 12
+  iPBKLen = 0
+  If iSaltLen > 16 Then
+    iPBKLen = 9
+    iSaltLen -= 9
+  Endif
+  iAESBits = 0
+  Select Case iSaltLen
+    Case 8
+      iAESBits = AESStrength.AES128
+    Case 12
+      iAESBits = AESStrength.AES192
+    Case 16
+      iAESBits = AESStrength.AES256
+  End Select
+  If iAESBits = 0 Then Return New AESFileData(1)
+  bSalt = New Byte[iSaltLen]
+  For I = 0 To iSaltLen - 1
+    bSalt[i] = bEncrypted[I]
+  Next
+  iPassVerifier = BitConverter.GetShort(bEncrypted, iSaltLen)
+  bEnc = New Byte[TrueDataLength]
+  For I = 0 To TrueDataLength - 1
+    bEnc[i] = bEncrypted[iSaltLen + 2 + I]
+  Next
+  hash = HashAlgorithm.SHA1
+  iterations = 1000
+  If Not (iPBKLen = 0) Then
+    hash = bEncrypted[iSaltLen + 2 + TrueDataLength]
+    iterations = BitConverter.GetLong(bEncrypted, iSaltLen + 2 + TrueDataLength + 1)
+  Endif
+  iAESKey = GenerateKey(sPassword, iAESBits, bSalt, hash, iterations)
+  If Not (iAESKey.PassVerifier = iPassVerifier) Then Return New AESFileData(3)
+  bAuthMAC = New Byte[10]
+  For I = 0 To 9
+    bAuthMAC[I] = bEncrypted[iSaltLen + 2 + TrueDataLength + iPBKLen + I]
+  Next
+  bAuthCompare = Byte[].FromString(cOpenSSL.HMACSHA(ByteString.ByteArrayToString(iAESKey.AuthKey), ByteString.ByteArrayToString(bEnc), "SHA1"))
+  For I = 0 To 9
+    If Not (bAuthMAC[I] = bAuthCompare[I]) Then Return New AESFileData(2)
+  Next
+  ret = New AESFileData
+  ret.DecryptedFile = AESCTR(bEnc, iAESKey.PassKey)
+  Return ret
+
+End
+
+Static Private Function GenerateKey(sPassword As String, Strength As Byte, Optional usingSalt As Byte[] = Null, Optional pbkdf2Hash As Byte = HashAlgorithm.SHA1, Optional pbkdf2Iterations As Long = 1000) As AESKeyData
+
+  Dim I, keySize, saltLen, derSize As Integer
+  Dim derB, bKey, bAuth, passVerifier As Byte[]
+  Dim ret As AESKeyData
+
+  keySize = 16
+  saltLen = 8
+  Select Case Strength
+    Case AESStrength.AES128
+      keySize = 16
+      saltLen = 8
+    Case AESStrength.AES192
+      keySize = 24
+      saltLen = 12
+    Case AESStrength.AES256
+      keySize = 32
+      saltLen = 16
+  End Select
+  If Not usingSalt Then
+    usingSalt = New Byte[saltLen]
+    cOpenSSL.GetRandomBytes(ByRef usingSalt)
+  Endif
+  If Not (usingSalt.Length = saltLen) Then
+    usingSalt = New Byte[saltLen]
+    cOpenSSL.GetRandomBytes(ByRef usingSalt)
+  Endif
+  derSize = keySize * 2 + 2
+  derB = cPBKDF2.Rfc2898DeriveBytes(sPassword, usingSalt, pbkdf2Iterations, derSize, pbkdf2Hash)
+  ret = New AESKeyData
+  ret.Salt = usingSalt
+  bKey = New Byte[keySize]
+  For I = 0 To keySize - 1
+    bKey[I] = derB[I]
+  Next
+  ret.PassKey = bKey
+  bAuth = New Byte[keySize]
+  For I = 0 To keySize - 1
+    bAuth[I] = derB[keySize + I]
+  Next
+  ret.AuthKey = bAuth
+  passVerifier = New Byte[2]
+  For I = 0 To 1
+    passVerifier[I] = derB[keySize * 2 + i]
+  Next
+  ret.PassVerifier = BitConverter.GetShort(passVerifier)
+  Return ret
+
+End
+
+Static Private Function AESCTR(bData As Byte[], bKey As Byte[]) As Byte[]
+
+  Dim b, b2, mask As Byte
+  Dim I, P, blockSize As Integer
+  Dim ctr, bOut, ctrModeBlock As Byte[]
+  Dim xorMask As Queue
+
+  blockSize = 16
+  ctr = New Byte[16]
+  ctr[0] = 1
+  xorMask = New Queue
+  bOut = New Byte[]
+  For P = 0 To bData.Length - 1
+    b = bData[P]
+    If xorMask.Size = 0 Then
+      ctrModeBlock = Byte[].FromString(Left$(Cipher["AES-256-ECB"].Encrypt(ByteString.ByteArrayToString(ctr), ByteString.ByteArrayToString(bKey), Null).Cipher, 16))
+      For I = 0 To ctr.Length - 1
+        If ctr[I] = &FF& Then
+          ctr[I] = 0
+        Else
+          ctr[I] += 1
+          Break
+        Endif
+      Next
+      For Each b2 In ctrModeBlock
+        xorMask.Enqueue(b2)
+      Next
+    Endif
+    mask = xorMask.Dequeue()
+    bOut.Push((b Xor mask))
+  Next
+  Return bOut
+
+End
+
+Static Private Function TimeToMSDOS(dTime As Date) As Short
+
+  Dim iHour As Short
+  Dim iMinute As Short
+  Dim iSecond As Short
+  Dim iTime As Short
+
+  dTime = UniversalDate.ToUTC(dTime)
+  iHour = Hour(dTime)
+  iMinute = Minute(dTime)
+  iSecond = Ceil(Second(dTime) / 2)
+  iTime = 0
+  iTime = iTime Or Lsl((iHour And &1F&), 11)
+  iTime = iTime Or Lsl((iMinute And &3F&), 5)
+  iTime = iTime Or (iSecond And &1F&)
+  Return iTime
+
+End
+
+Static Private Function DateToMSDOS(dDate As Date) As Short
+
+  Dim iYear As Short
+  Dim iMonth As Short
+  Dim iDay As Short
+  Dim iDate As Short
+
+  dDate = UniversalDate.ToUTC(dDate)
+  If Year(dDate) < 1980 Then Return 0
+  If Year(dDate) > 2107 Then Return 0
+  iYear = Year(dDate) - 1980
+  iMonth = Month(dDate)
+  iDay = Day(dDate)
+  iDate = 0
+  iDate = iDate Or Lsl((iYear And &7F&), 9)
+  iDate = iDate Or Lsl((iMonth And &F&), 5)
+  iDate = iDate Or (iDay And &1F&)
+  Return iDate
+
+End
+
+Static Private Function MSDOSToDateTime(iDate As Short, iTime As Short) As Date
+
+  Dim iYear As Short
+  Dim iMonth As Short
+  Dim iDay As Short
+  Dim iHour As Short
+  Dim iMinute As Short
+  Dim iSecond As Short
+
+  iYear = Lsr((iDate And &FE00&), 9)
+  iMonth = Lsr((iDate And &1E0&), 5)
+  iDay = (iDate And &1F&)
+  iHour = Lsr((iTime And &F800&), 11)
+  iMinute = Lsr((iTime And &7E0&), 5)
+  iSecond = (iTime And &1F&)
+  Return UniversalDate.ToLocal(Date(iYear + 1980, iMonth, iDay, iHour, iMinute, iSecond, 0))
+
+End

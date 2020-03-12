@@ -1,0 +1,47 @@
+' Gambas class file
+
+Public Name As String
+Public Created As Date
+Public Modified As Date
+Public Accessed As Date
+Public Data As Byte[]
+Public Comment As String
+Public Offset As Integer
+Public EncryptedLength As Integer
+'Problems:
+'1: File Error
+'2: File Corruption
+'3: Incorrect Password
+Public Problem As Byte
+
+Public Sub _new(sPathOrName As String, Optional sComment As String = Null, bData As Byte[] = Null, dTimestamp As Date = Null)
+
+  Dim nFile As File
+  Dim fStat As Stat
+
+  If Not bData Then
+    If Not Exist(sPathOrName) Then Return
+    Name = File.Name(sPathOrName)
+    fStat = Stat(sPathOrName)
+    Created = fStat.LastModified
+    Modified = fStat.LastModified
+    Accessed = fStat.LastAccess
+    Data = New Byte[fStat.Size]
+    nFile = Open sPathOrName For Read
+    For I As Long = 0 To nFile.size - 1
+      Data[I] = Read #nFile As Byte
+    Next
+    Close #nFile
+    Comment = sComment
+    Problem = 0
+  Else
+    Name = sPathOrName
+    Created = dTimestamp
+    Modified = dTimestamp
+    Accessed = dTimestamp
+    Data = bData
+    Comment = sComment
+    Problem = 0
+  Endif
+
+End

@@ -1,0 +1,30 @@
+' Gambas class file
+
+Create Private
+
+Static Public Function ScanScreens() As String[]
+
+  Dim sTmp, sRet, sCode As String
+  Dim pImage As Picture
+  Dim scr As Screen
+  Dim sCodes, sLines As String[]
+
+  sCodes = New String[]
+  For Each scr In Screens
+    pImage = Desktop.Screenshot(scr.X, scr.Y, scr.Width, scr.Height)
+    sTmp = Temp$() & ".png"
+    pImage.Save(sTmp)
+    pImage.Clear
+    Shell "zbarimg -q -Sqr.enable \"" & sTmp & "\" 2>&1" To sRet
+    Try Kill sTmp
+    If Not InStr(sRet, "\n") Then Continue
+    sLines = Split(sRet, "\n", Null, True)
+    For Each sCode In sLines
+      If Left$(sCode, 8) = "QR-Code:" Then
+        sCodes.Push(Mid$(sCode, 9))
+      Endif
+    Next
+  Next
+  Return sCodes
+
+End

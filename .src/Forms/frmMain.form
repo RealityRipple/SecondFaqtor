@@ -1,0 +1,102 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,45,19)
+  Text = ("SecondFaqtor")
+  Icon = Picture["icon.png"]
+  Resizable = False
+  Arrangement = Arrange.Vertical
+  AutoResize = True
+  { pnlInterface VBox
+    MoveScaled(0,0,45,19)
+    AutoResize = True
+    { !cmbProfile ComboBox
+      MoveScaled(0,0,45,5)
+      #Public = True
+      Font = Font["+5"]
+      ReadOnly = True
+    }
+    { pnlNumbers HBox
+      MoveScaled(0,5,45,7)
+      Expand = True
+      { spLeft Spring
+        MoveScaled(0,0,5,7)
+      }
+      { pnlPast VBox
+        MoveScaled(5,0,9,7)
+        { txtCodePast TextBox
+          MoveScaled(0,0,9,4)
+          Font = Font["DejaVu Sans Mono,+1"]
+          Background = Color.Background
+          Mouse = Mouse.Text
+          Text = ("000 000")
+          Alignment = Align.Center
+          ReadOnly = True
+          Border = False
+        }
+        { spPast Spring
+          MoveScaled(0,3,9,4)
+        }
+      }
+      { txtCode TextBox
+        MoveScaled(14,0,17,7)
+        Font = Font["DejaVu Sans Mono,+7"]
+        Background = Color.Background
+        Mouse = Mouse.Text
+        Text = ("000 000")
+        Alignment = Align.Center
+        ReadOnly = True
+      }
+      { pnlFuture VBox
+        MoveScaled(31,0,9,7)
+        { txtCodeFuture TextBox
+          MoveScaled(0,0,9,4)
+          Font = Font["DejaVu Sans Mono,+1"]
+          Background = Color.Background
+          Mouse = Mouse.Text
+          Text = ("000 000")
+          Alignment = Align.Center
+          ReadOnly = True
+          Border = False
+        }
+        { spFuture Spring
+          MoveScaled(0,3,9,4)
+        }
+      }
+      { spRight Spring
+        MoveScaled(40,0,5,7)
+      }
+    }
+    { pbTime ProgressBar
+      MoveScaled(0,12,45,3)
+      Label = False
+    }
+    { pnlButtons HBox
+      MoveScaled(0,15,45,4)
+      AutoResize = True
+      { Panel1 Panel
+        MoveScaled(0,0,4,4)
+      }
+      { spButtonLeft Spring
+        MoveScaled(4,0,7,4)
+      }
+      { cmdProfiles Button
+        MoveScaled(11,0,23,4)
+        AutoResize = True
+        Text = ("Authenticator Profiles")
+      }
+      { spButtonRight Spring
+        MoveScaled(34,0,7,4)
+      }
+      { cmdQR Button
+        MoveScaled(41,0,4,4)
+        Picture = Picture["icon:/medium/zoom-fit"]
+      }
+    }
+  }
+  { tmrAuthVals #Timer
+    #MoveScaled(46,0)
+    Enabled = True
+    Delay = 200
+  }
+}

@@ -1,0 +1,194 @@
+' Gambas class file
+
+Private $aChk As New Integer[]
+
+' Private Sub Dump()
+'
+'   Dim I As Integer
+'   '
+'   ' Print System.Backtrace.Join(" ")
+'   '
+'   Print "Checked = ";
+'   For I = 0 To $aChk.Max Step 2
+'     Print "["; $aChk[I]; ","; $aChk[I + 1]; "] ";
+'   Next
+'   Print
+'
+' End
+' '
+
+Public Sub SetChecked(aChk As Integer[])
+
+  $aChk = aChk
+
+End
+
+Public Sub Copy() As CheckedGridViewChecked
+
+  Dim hChk As CheckedGridViewChecked = New CheckedGridViewChecked
+
+  hChk.SetChecked($aChk.Copy())
+  Return hChk
+
+End
+
+Public Sub Check(iStart As Integer, Optional iLength As Integer = 1)
+
+  Dim I, S, L As Integer
+
+  For I = 0 To $aChk.Max Step 2
+
+    S = $aChk[I]
+    L = $aChk[I + 1]
+
+    If iStart >= S And If iStart <= (S + L) Then
+      $aChk[I + 1] = iStart + iLength - S
+      'Dump
+      Return
+    Else If (iStart + iLength) >= S And If (iStart + iLength) <= (S + L) Then
+      $aChk[I + 1] += $aChk[I] - iStart
+      $aChk[I] = iStart
+      'Dump
+      Return
+    Endif
+
+  Next
+
+  $aChk.Add(iStart)
+  $aChk.Add(iLength)
+  'Dump
+
+End
+
+Public Sub UnCheck(iStart As Integer, Optional iLength As Integer = 1)
+
+  Dim I, S, L As Integer
+
+  I = 0
+  While I < $aChk.Count
+
+    S = $aChk[I]
+    L = $aChk[I + 1]
+
+    If (iStart + iLength) > S And If iStart < (S + L) Then
+
+      If iStart <= S And If (iStart + iLength) >= (S + L) Then
+        $aChk.Remove(I, 2)
+        Continue
+      Endif
+
+      If iStart <= S Then
+        $aChk[I + 1] -= iStart + iLength - S
+        $aChk[I] = iStart + iLength
+      Else If (iStart + iLength) >= (S + L) Then
+        $aChk[I + 1] = iStart - S
+      Else
+        $aChk[I + 1] = iStart - S
+        $aChk.Add(iStart + iLength)
+        $aChk.Add(S + L - iStart - iLength)
+      Endif
+
+    Endif
+
+    I += 2
+  Wend
+  'Dump
+
+End
+
+Public Sub UnCheckAll()
+
+  $aChk.Clear
+  'Dump
+
+End
+
+Public Sub IsChecked(iIndex As Integer) As Boolean
+
+  Dim I, S, L As Integer
+
+  For I = 0 To $aChk.Max Step 2
+
+    S = $aChk[I]
+    L = $aChk[I + 1]
+
+    If iIndex >= S And iIndex < (S + L) Then Return True
+
+  Next
+
+End
+
+Public Function _GetCheckedRows(iCount As Integer) As Integer[]
+
+  Dim aRet As New Integer[]
+  Dim I, J, S, L As Integer
+
+  For I = 0 To $aChk.Max Step 2
+    S = $aChk[I]
+    L = $aChk[I + 1]
+
+    For J = 0 To L - 1
+      If (S + J) >= iCount Then Break
+      aRet.Add(S + J)
+    Next
+  Next
+
+  Return aRet
+
+End
+
+Public Sub InsertRows(iStart As Integer, iLength As Integer)
+
+  Dim I, S, L As Integer
+
+  For I = 0 To $aChk.Max Step 2
+
+    S = $aChk[i]
+    L = $aChk[I + 1]
+
+    If iStart <= S Then
+      $aChk[I] += iLength
+    Else If iStart <= (S + L) Then
+      $aChk[I + 1] = iStart - S
+      $aChk.Add(iStart + iLength)
+      $aChk.Add(L - (iStart - S))
+    Endif
+
+  Next
+
+  'Dump
+
+End
+
+Public Sub RemoveRows(iStart As Integer, iLength As Integer)
+
+  Dim I, S, L As Integer
+
+  I = 0
+  While I < $aChk.Count
+
+    S = $aChk[I]
+    L = $aChk[I + 1]
+
+    If (iStart + iLength) <= S Then
+      $aChk[I] -= iLength
+    Else If iStart >= (S + L) Then
+    Else
+      If iStart < S Then
+        iLength -= (S - iStart)
+        $aChk[I] = iStart
+      Endif
+      $aChk[I + 1] -= iLength - (iStart - S)
+    Endif
+
+    If $aChk[I + 1] <= 0 Then
+      $aChk.Remove(I, 2)
+    Else
+      I += 2
+    Endif
+
+  Wend
+
+  'Dump
+
+End

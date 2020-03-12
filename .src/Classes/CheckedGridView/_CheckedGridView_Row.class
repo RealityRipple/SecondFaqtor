@@ -1,0 +1,126 @@
+' Gambas class file
+
+Event _Refresh
+
+Property Read Y, {Top} As Integer
+Property Height, H As Integer
+Property Selected As Boolean
+Property Text, Title As String
+Property Border As Border
+Property Checked As Boolean
+Property TextAlignment As Integer
+
+Public _Row As Integer
+
+Private Sub GetRows() As _CheckedGridView_Rows
+
+  Return Object.Parent(Me)
+
+End
+
+Private Sub GetView() As _CheckedGridView
+
+  Return Object.Parent(Object.Parent(Me))
+
+End
+
+Private Function Height_Read() As Integer
+
+  Return GetRows()._GetRowHeight(_Row)
+
+End
+
+Private Sub Height_Write(Value As Integer)
+
+  GetRows()._SetRowHeight(_Row, Value)
+
+End
+
+Private Function Y_Read() As Integer
+
+  Return GetRows()._GetRowY(_Row)
+
+End
+
+Private Function Selected_Read() As Boolean
+
+  Return GetView()._IsRowSelected(_Row)
+
+End
+
+Private Sub Selected_Write(Value As Boolean)
+
+  Dim hView As _CheckedGridView = GetView()
+  Dim hRows As _CheckedGridView_Rows = GetRows()
+
+  If hView.Mode = Select.Single Then
+    hView._SelectRow(_Row, Value)
+  Else If hView.Mode = Select.Multiple Then
+    If Value Then
+      If Not hRows._IsSelected(_Row) Then hRows.Select(_Row)
+    Else
+      If hRows._IsSelected(_Row) Then hRows.UnSelect(_Row)
+    Endif
+  Endif
+
+End
+
+Private Function Checked_Read() As Boolean
+
+  Return GetView()._IsRowChecked(_Row)
+
+End
+
+Private Sub Checked_Write(Value As Boolean)
+
+  Dim hRows As _CheckedGridView_Rows = GetRows()
+
+  If Value Then
+    If Not hRows._IsChecked(_Row) Then hRows.Check(_Row)
+  Else
+    If hRows._IsChecked(_Row) Then hRows.UnCheck(_Row)
+  Endif
+
+End
+
+Private Function Text_Read() As String
+
+  Return GetRows()._GetRowText(_Row)
+
+End
+
+Private Sub Text_Write(Value As String)
+
+  GetRows()._SetRowText(_Row, Value)
+
+End
+
+Public Sub Refresh()
+
+  GetView()._RefreshRow(_Row)
+
+End
+
+Private Function Border_Read() As Border
+
+  Return GetRows()._GetRowBorder(_Row)
+
+End
+
+Private Sub Border_Write(Value As Border)
+
+  GetRows()._SetRowBorder(_Row, Value)
+
+End
+
+Private Function TextAlignment_Read() As Integer
+
+  Return GetRows()._GetRowTextAlign(_Row)
+
+End
+
+Private Sub TextAlignment_Write(Value As Integer)
+
+  GetRows()._SetRowTextAlign(_Row, Value)
+
+End

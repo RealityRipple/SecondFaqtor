@@ -1,0 +1,84 @@
+' Gambas module file
+
+Inherits DBusObject
+
+Public Sub Main()
+
+  Dim success As Boolean
+  Dim closeMe, I As Integer
+  Dim sImport, sPassword As String
+  Dim pass As FrmPassEntry
+
+  Randomize
+  sImport = Null
+  closeMe = CheckBox.None
+  If Application.Args.Count > 0 Then
+    For I = 0 To Application.Args.Count - 1
+      If String.LCase(String.Left(Application.Args[I], 8)) = "otpauth:" Then
+        sImport = Application.Args[I]
+        closeMe = CheckBox.False
+        If RegisterSingleInstance(sImport) Then closeMe = CheckBox.True
+      Endif
+    Next
+  Endif
+  If closeMe = CheckBox.True Then Quit
+  If closeMe = CheckBox.None And If RegisterSingleInstance() Then Quit
+  DBus.Session.Register(DBusRcv, "/import")
+  If cSettings.RequiresLogin Then
+    success = False
+    For I = 1 To 3
+      pass = New FrmPassEntry
+      pass.Prepare_Login
+      If Not pass.ShowModal() Then
+        DBus.Session.Unregister(DBusRcv)
+        Return
+      Endif
+      sPassword = pass.password
+      pass.Delete
+      If cSettings.Login(sPassword) Then
+        success = True
+        Break
+      Endif
+      If I = 1 Then
+        Message.Warning(("The password you entered was incorrect.") & "<br>" & ("You have 2 attempts remaining."), ("Retry"))
+      Else If I = 2 Then
+        Message.Warning(("The password you entered was incorrect.") & "<br>" & ("You have 1 attempt remaining."), ("Retry"))
+      Else
+        If sImport Then
+          Message.Error(("The password you entered was incorrect.") & "<br>" & ("Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."), ("Close"))
+        Else
+          Message.Error(("The password you entered was incorrect."), ("Close"))
+        Endif
+      Endif
+    Next
+    If Not success Then
+      DBus.Session.Unregister(DBusRcv)
+      Return
+    Endif
+  Endif
+  frmMain.Show
+
+End
+
+Private Function RegisterSingleInstance(Optional sImport As String = Null) As Boolean
+
+  Dim sFind, sName, sFound As String
+  Dim sNames As String[]
+
+  sFind = DBus.Name
+  If InStr(sFind, "-") > 0 Then sFind = Left$(sFind, RInStr(sFind, "-") - 1)
+  sNames = DBus["org.freedesktop.DBus"]["/"].ListNames()
+  sFound = Null
+  For Each sName In sNames
+    If Left$(sName, Len(sFind)) = sFind Then
+      sFound = sName
+      Break
+    Endif
+  Next
+  If sFound Then
+    Try DBus[sFound]["/import"].Receiver(sImport)
+    Return True
+  Endif
+  Return False
+
+End

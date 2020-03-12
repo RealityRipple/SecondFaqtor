@@ -1,0 +1,135 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,52.1429,64.2857)
+  Text = ("Backup and Restore Profiles")
+  Icon = Picture["icon.png"]
+  Arrangement = Arrange.Fill
+  { VBox1 VBox
+    MoveScaled(1,1,50,54)
+    Expand = True
+    { tbsSelection TabPanel
+      MoveScaled(1,1,48,52)
+      Expand = True
+      Arrangement = Arrange.Vertical
+      Count = 2
+      Index = 0
+      Text = ("Backup Profiles")
+      { pnlBackup VBox
+        MoveScaled(1,1,37,34)
+        Expand = True
+        Spacing = True
+        Margin = True
+        { pnlExportAll HBox
+          MoveScaled(1,1,20,4)
+          AutoResize = True
+          { chkExportAll CheckBox
+            MoveScaled(0,0,12,4)
+            AutoResize = True
+            Text = ("Select All")
+          }
+          { spExportAll Spring
+            MoveScaled(13,0,4,4)
+          }
+        }
+        { lstExportProfiles CheckedListBox
+          MoveScaled(1,6,35,8)
+          Expand = True
+          Mode = Select.Multiple
+        }
+        { pnlExportAdvanced HBox
+          MoveScaled(1,15,31,4)
+          AutoResize = True
+          { chkExportAdvanced CheckBox
+            MoveScaled(0,0,24,4)
+            AutoResize = True
+            Text = ("Use Advanced Encryption")
+          }
+          { spExportAdvanced Spring
+            MoveScaled(25,0,4,4)
+          }
+        }
+        { lblExportAdvanced TextLabel
+          MoveScaled(1,19,35,8)
+          AutoResize = True
+          Text = ("By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.<br><br>\nFor advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:<br>\n&nbsp;&bull; HMAC-SHA-512 instead of HMAC-SHA-1<br>\n&nbsp;&bull; A dynamically set iteration count instead of 1,000 rounds<br><br>\nThese features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup.")
+          Alignment = Align.TopLeft
+        }
+        { pnlExportButtons HBox
+          MoveScaled(1,27,35,6)
+          AutoResize = True
+          { spExportButtons1 Spring
+            MoveScaled(1,1,4,4)
+          }
+          { cmdExport Button
+            MoveScaled(6,1,23,4)
+            Enabled = False
+            Text = ("Export Selected Profiles")
+          }
+          { spExportButtons2 Spring
+            MoveScaled(30,1,4,4)
+          }
+        }
+      }
+      Index = 1
+      Text = ("Import Profiles")
+      { pnlImport VBox
+        MoveScaled(1,1,37,33)
+        Expand = True
+        Spacing = True
+        Margin = True
+        { pnlImportActions HBox
+          MoveScaled(1,1,26,6)
+          AutoResize = True
+          Spacing = True
+          { lblImportFile Label
+            MoveScaled(1,1,10,4)
+            AutoResize = True
+            Text = ("Backup File:")
+          }
+          { txtImportFile ButtonBox
+            MoveScaled(12,1,13,4)
+            Expand = True
+          }
+        }
+        { pnlImportAll HBox
+          MoveScaled(1,8,20,6)
+          AutoResize = True
+          { chkImportAll CheckBox
+            MoveScaled(1,1,13,4)
+            AutoResize = True
+            Text = ("Select All")
+          }
+          { spImportAll Spring
+            MoveScaled(15,1,4,4)
+          }
+        }
+        { lstImportProfiles CheckedListBox
+          MoveScaled(1,15,35,8)
+          Expand = True
+          Mode = Select.Multiple
+        }
+        { pnlImportButtons HBox
+          MoveScaled(1,24,35,8)
+          AutoResize = True
+          { spImportButtons1 Spring
+            MoveScaled(1,2,4,4)
+          }
+          { cmdImport Button
+            MoveScaled(6,2,23,4)
+            Enabled = False
+            Text = ("Import Selected Profiles")
+          }
+          { spImportButtons2 Spring
+            MoveScaled(30,2,4,4)
+          }
+        }
+      }
+      Index = 0
+    }
+  }
+  { tmrShown #Timer
+    #MoveScaled(67,1)
+    Delay = 100
+  }
+}

@@ -1,0 +1,375 @@
+' Gambas class file
+
+Private mBusy As Boolean
+
+Public Sub Form_Open()
+
+  txtSecret.Editor.Password = True
+  DrawSecretBox
+
+End
+
+Public Sub Form_Show()
+
+  Dim I As Integer
+
+  UpdateProfileListing()
+  For I = 0 To cmbProfiles.Count - 1
+    If cmbProfiles[I].Text = frmMain.cmbProfile.Text Then
+      cmbProfiles.Index = I
+      Break
+    Endif
+  Next
+
+End
+
+Public Sub cmbProfiles_Click()
+
+  LoadProfileData(cmbProfiles.Text)
+
+End
+
+Public Sub cmdAdd_Click()
+
+  Dim I, J, idx As Integer
+  Dim sProfile, n, sNewName As String
+
+  I = 0
+  For Each sProfile In cmbProfiles.List
+    If (sProfile = ("Untitled Account")) And (I = 0) Then I = 1
+    sNewName = Subst(("Untitled Account &1"), "")
+    If String.Left(sProfile, String.Len(sNewName)) = sNewName Then
+      idx = I
+      n = String.Mid(sProfile, String.Len(sNewName) + 1)
+      If Val(n) Then idx = CInt(n)
+      I = idx + 1
+    Endif
+    sNewName = Null
+  Next
+  sNewName = ("Untitled Account")
+  If I > 0 Then
+    sNewName = Subst(("Untitled Account &1"), I)
+  Endif
+  cSettings.AddProfile(sNewName, "")
+  UpdateProfileListing()
+  cmbProfiles.Index = 0
+  For J = 0 To cmbProfiles.Count - 1
+    If cmbProfiles[J].Text = sNewName Then
+      cmbProfiles.Index = J
+      Break
+    Endif
+  Next
+
+End
+
+Public Sub cmdRemove_Click()
+
+  If cmbProfiles.Index = -1 Then
+    Bell.Beep
+    cmdRemove.Enabled = False
+    Return
+  Endif
+  If cSettings.ProfileSecretR(cmbProfiles.Text) Then
+    Message.Title = Subst(("Remove &1 Profile?"), Application.Title)
+    If Message.Delete(Subst(("Are you sure you want to remove the &1 profile?"), cmbProfiles.Text) & "\n" & ("If this profile is still used by a website or service, you may no longer be able to access the associated account.") & "\n" & ("Please be absolutely certain you wish to proceed before clicking \"Yes\"."), ("&Yes"), ("&No")) = 2 Then Return
+  Endif
+  cSettings.RemoveProfile(cmbProfiles.Text)
+  UpdateProfileListing()
+
+End
+
+Public Sub cmdSaveProfile_Click()
+
+  Dim I As Integer
+  Dim selName As String
+  Dim deSecret As Byte[]
+
+  If Not txtName.Text Then
+    Message.Warning(("Please enter a name for this Profile."))
+    txtName.SetFocus
+    Return
+  Endif
+
+  For I = 0 To cmbProfiles.Count - 1
+    If I = cmbProfiles.Index Then Continue
+    If String.LCase(cmbProfiles[I].Text) = String.LCase(txtName.Text) Then
+      Message.Warning(("Please enter a unique name for this Profile."))
+      txtName.SetFocus
+      Return
+    Endif
+  Next
+
+  deSecret = Base32.Base32StringToByteArray(String.UCase(txtSecret.Text))
+  If Not deSecret Then
+    Message.Error(("Invalid secret value. Please double-check your entry."))
+    txtSecret.SetFocus
+    Return
+  Endif
+  If deSecret.Length < 1 Then
+    Message.Error(("Invalid secret value. Please double-check your entry."))
+    txtSecret.SetFocus
+    Return
+  Endif
+  If txtSize.Value = 7 Then
+    Message.Error(("Number of digits must be six or eight."))
+    txtSize.SetFocus
+    Return
+  Endif
+  cSettings.ProfileSecretW(cmbProfiles.Text, txtSecret.Text)
+  cSettings.ProfileDigitsW(cmbProfiles.Text, txtSize.Value)
+  Select Case cmbAlgorithm.Index
+    Case 1
+      cSettings.ProfileAlgorithmW(cmbProfiles.Text, HashAlgorithm.SHA256)
+    Case 2
+      cSettings.ProfileAlgorithmW(cmbProfiles.Text, HashAlgorithm.SHA512)
+    Case Else
+      cSettings.ProfileAlgorithmW(cmbProfiles.Text, HashAlgorithm.SHA1)
+  End Select
+  cSettings.ProfilePeriodW(cmbProfiles.Text, txtPeriod.Value)
+  selName = txtName.Text
+  If Not (cmbProfiles.Text = selName) Then cSettings.RenameProfile(cmbProfiles.Text, selName)
+  UpdateProfileListing()
+  For I = 0 To cmbProfiles.Count - 1
+    If cmbProfiles[I].Text = selName Then
+      cmbProfiles.Index = I
+      Break
+    Endif
+  Next
+
+End
+
+Public Sub cmdResetProfile_Click()
+
+  LoadProfileData(cmbProfiles.Text)
+
+End
+
+Public Sub cmdClose_Click()
+
+  If cmdSaveProfile.Enabled Then
+    Message.title = ("Discard Changes?")
+    If Message.Delete(("Are you sure you want to close without saving the changes to your Profile?"), ("&Yes"), ("&No")) = 2 Then Return
+  Endif
+
+  Me.Close()
+
+End
+'
+
+Public Sub UpdateProfileListing()
+
+  Dim selected As Boolean
+  Dim selProf, sName As String
+
+  If cSettings.RequiresLogin Then
+    cmdPassword.Text = ("Change Password")
+  Else
+    cmdPassword.Text = ("Require Login")
+  Endif
+  selProf = Null
+  If cmbProfiles.Index > -1 Then selProf = cmbProfiles.Text
+  cmbProfiles.Clear()
+  If cSettings.Count = 0 Then
+    cmbProfiles.Enabled = False
+    cmdAdd.Enabled = True
+    cmdRemove.Enabled = False
+    LoadProfileData(Null)
+    Return
+  Endif
+  cmbProfiles.Enabled = True
+  cmdAdd.Enabled = True
+  cmdRemove.Enabled = True
+  selected = False
+  For Each sName In cSettings.GetProfileNames
+    cmbProfiles.Add(sName)
+    If selProf = sName Then
+      cmbProfiles.Index = cmbProfiles.Count - 1
+      selected = True
+    Endif
+  Next
+  If Not selected Then cmbProfiles.Index = 0
+
+End
+
+Private Sub LoadProfileData(ProfileName As String)
+
+  Dim sDefault As String
+
+  If Not ProfileName Then
+    txtName.Text = Null
+    txtName.Enabled = False
+    txtSecret.Text = Null
+    txtSecret.Enabled = False
+    cmdDefaultService.Visible = False
+    txtSize.Value = txtSize.MinValue
+    txtSize.Enabled = False
+    cmbAlgorithm.Index = -1
+    cmbAlgorithm.Enabled = False
+    txtPeriod.Value = 30
+    txtPeriod.Enabled = False
+    cmdSaveProfile.Enabled = False
+    cmdResetProfile.Enabled = False
+    Return
+  Endif
+  If Not cSettings.GetProfileNames.Exist(ProfileName) Then
+    LoadProfileData(Null)
+    Return
+  Endif
+  mBusy = True
+  txtName.Text = ProfileName
+  txtName.Enabled = True
+  sDefault = cSettings.ProfileDefaultNameR(cmbProfiles.Text)
+  If sDefault = ProfileName Then sDefault = Null
+  cmdDefaultService.Visible = sDefault
+  txtSecret.Text = cSettings.ProfileSecretR(ProfileName)
+  txtSecret.Enabled = True
+  txtSecret.Editor.Password = True
+  DrawSecretBox
+  txtSize.Value = cSettings.ProfileDigitsR(ProfileName)
+  txtSize.Enabled = True
+  Select Case cSettings.ProfileAlgorithmR(ProfileName)
+    Case HashAlgorithm.SHA256
+      cmbAlgorithm.Index = 1
+    Case HashAlgorithm.SHA512
+      cmbAlgorithm.Index = 2
+    Case Else
+      cmbAlgorithm.Index = 0
+  End Select
+  cmbAlgorithm.Enabled = True
+  txtPeriod.Value = cSettings.ProfilePeriodR(ProfileName)
+  txtPeriod.Enabled = True
+  mBusy = False
+  SettingsChanged()
+
+End
+
+Private Sub SettingsChanged()
+
+  Dim changeDetected As Boolean
+
+  If mBusy Then Return
+  changeDetected = False
+  If cmbProfiles.Index > -1 Then
+    If Not (txtName.Text = cmbProfiles.Text) Then changeDetected = True
+    If Not (txtSecret.Text = cSettings.ProfileSecretR(cmbProfiles.Text)) Then changeDetected = True
+    If Not (txtSize.Value = cSettings.ProfileDigitsR(cmbProfiles.Text)) Then changeDetected = True
+    If Not (txtPeriod.Value = cSettings.ProfilePeriodR(cmbProfiles.Text)) Then changeDetected = True
+    Select Case cSettings.ProfileAlgorithmR(cmbProfiles.Text)
+      Case HashAlgorithm.SHA1
+        If Not (cmbAlgorithm.Index = 0) Then changeDetected = True
+      Case HashAlgorithm.SHA256
+        If Not (cmbAlgorithm.Index = 1) Then changeDetected = True
+      Case HashAlgorithm.SHA512
+        If Not (cmbAlgorithm.Index = 2) Then changeDetected = True
+    End Select
+  Endif
+  cmdAdd.Enabled = Not changeDetected
+  cmbProfiles.Enabled = Not changeDetected
+  cmdSaveProfile.Enabled = changeDetected
+  cmdResetProfile.Enabled = changeDetected
+
+End
+
+Public Sub txtName_Change()
+
+  SettingsChanged()
+
+End
+
+Public Sub cmdDefaultService_Click()
+
+  Dim sDefault As String
+
+  sDefault = cSettings.ProfileDefaultNameR(cmbProfiles.Text)
+  If Not sDefault Then
+    Bell.Beep
+    Return
+  Endif
+  If sDefault = txtName.Text Then
+    If cmdSaveProfile.Enabled Then
+      Message.Info(("The default name has already been set for this profile. Please save your changes before continuing."))
+    Else
+      Bell.Beep
+    Endif
+    Return
+  Endif
+  Message.Title = ("Reset Profile Name?")
+  If Message.Question(Subst(("Do you want to reset the name for this profile to its default value of \"&1\"?"), sDefault), ("&Yes"), ("&No")) = 1 Then txtName.Text = sDefault
+
+End
+
+Public Sub txtSecret_Change()
+
+  SettingsChanged()
+
+End
+
+Public Sub txtSize_Change()
+
+  SettingsChanged()
+
+End
+
+Public Sub txtPeriod_Change()
+
+  SettingsChanged()
+
+End
+
+Public Sub cmbAlgorithm_Click()
+
+  SettingsChanged
+
+End
+
+Public Sub txtSecret_Click()
+
+  txtSecret.Editor.Password = Not txtSecret.Editor.Password
+  DrawSecretBox
+
+End
+
+Public Sub cmdPassword_Click()
+
+  Dim pass As FrmPassEntry
+
+  pass = New FrmPassEntry
+  If cSettings.RequiresLogin Then
+    pass.Prepare_ChangePass
+  Else
+    pass.Prepare_NewPass
+  Endif
+  If pass.ShowDialog() Then
+    cSettings.ChangePassword(pass.Password)
+    UpdateProfileListing
+  Endif
+  pass.Delete
+
+End
+
+Public Sub cmdBackup_Click()
+
+  Dim fBackup As FrmBackup
+
+  fBackup = New FrmBackup
+  fBackup.ShowDialog()
+  UpdateProfileListing
+
+End
+
+Private Sub DrawSecretBox()
+
+  Dim daSecret As DrawingArea
+  Dim cmdSecret As ToolButton
+
+  daSecret = txtSecret.Children[0]
+  cmdSecret = daSecret.Children[1]
+  If txtSecret.Editor.Password Then
+    cmdSecret.Tooltip = ("Show Secret")
+    txtSecret.Picture = Picture["icon:/small/lock"]
+  Else
+    cmdSecret.Tooltip = ("Hide Secret")
+    txtSecret.Picture = Picture["icon:/small/unlock"]
+  Endif
+
+End

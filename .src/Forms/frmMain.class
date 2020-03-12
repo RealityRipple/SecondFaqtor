@@ -1,0 +1,414 @@
+' Gambas class file
+
+Private priorSlice As Integer
+
+Public Sub tmrAuthVals_Timer()
+
+  Dim iPeriod, remainder As Short
+  Dim timeSlice As Integer
+
+  iPeriod = 30
+  If cmbProfile.List.Length > 0 Then iPeriod = cSettings.ProfilePeriodR(cmbProfile.Text)
+  remainder = DateDiff(CDate("1/1/1970 0:00:00"), Now, gb.Second) Mod iPeriod
+  timeSlice = Floor(DateDiff(CDate("1/1/1970 0:00:00"), Now, gb.second) / iPeriod)
+  If Not (pbTime.value = ((iPeriod - 1) - remainder) / (iPeriod - 1)) Then pbTime.value = ((iPeriod - 1) - remainder) / (iPeriod - 1)
+  If timeSlice = priorSlice Then Return
+  priorSlice = timeSlice
+  If cmbProfile.List.Length > 0 Then
+    LoadProfileData(cmbProfile.text)
+    If txtCodeFuture.HasFocus Then
+      txtCode.SetFocus
+    Else If txtCode.HasFocus Then
+      txtCodePast.SetFocus
+    Endif
+  Else
+    LoadProfileData(Null)
+  Endif
+
+End
+
+Public Sub Form_Show()
+
+  Dim I As Integer
+  Dim selProfile As String
+
+  UpdateProfileListing()
+  selProfile = cSettings.LastSelectedProfileName
+  If selProfile Then
+    For I = 0 To cmbProfile.List.Length - 1
+      If cmbProfile.List[I] = selProfile Then
+        cmbProfile.Index = I
+        LoadProfileData(cmbProfile.Text)
+        Break
+      Endif
+    Next
+  Endif
+  priorSlice = Floor(DateDiff(CDate("1/1/1970 0:00:00"), Now, gb.second) / 30)
+  If Application.Args.Count > 0 Then
+    For I = 0 To Application.Args.Count - 1
+      If String.LCase(String.Left(Application.Args[I], 8)) = "otpauth:" Then ParseOTPURL(Application.Args[I], False)
+    Next
+  Endif
+
+End
+
+Public Sub Form_Close()
+
+  DBus.Session.Unregister(DBusRcv)
+
+End
+
+Private Function GetCode(secret As String, size As Integer, algo As Byte, period As Short, timeOffset As Short) As String
+
+  Dim offset As Byte
+  Dim I, timeSlice, modulo, RoL, value As Integer
+  Dim hashV As Long
+  Dim hash, ret As String
+  Dim secretKey, btime, bSlice, hm, hashPart As Byte[]
+
+  timeSlice = Floor(DateDiff(CDate("1/1/1970 0:00:00"), Now, gb.second) / period) + timeOffset
+  secretKey = Base32.Base32StringToByteArray(UCase$(secret))
+  If Not secretKey Then Return String$(size, "0")
+  bTime = New Byte[8]
+  bSlice = BitConverter.GetBytes(timeSlice)
+  For I = 0 To 3
+    btime[4 + I] = bSlice[3 - I]
+  Next
+  Select Case algo
+    Case HashAlgorithm.SHA256
+      hash = "SHA256"
+    Case HashAlgorithm.SHA512
+      hash = "SHA512"
+    Case Else
+      hash = "SHA1"
+  End Select
+  hm = Byte[].FromString(cOpenSSL.HMACSHA(ByteString.ByteArrayToString(secretKey), ByteString.ByteArrayToString(btime), hash))
+  offset = hm.Last And &F&
+  hashpart = New Byte[4]
+  For I = 0 To 3
+    hashpart[I] = hm[offset + I]
+  Next
+  value = 0
+  For I = 0 To 3
+    RoL = ((3 - I) * 8)
+    hashV = hashPart[I]
+    value += CLong(Lsl(hashV, RoL))
+    hashV = 0
+  Next
+  value = Value And &7FFFFFFF&
+  modulo = 10 ^ size
+  ret = (value Mod modulo)
+  Return String$(size - Len(ret), "0") & ret
+
+End
+
+Public Sub cmdProfiles_Click()
+
+  frmProfiles.ShowModal()
+  UpdateProfileListing()
+
+End
+
+Private Sub UpdateProfileListing()
+
+  Dim I As Integer
+  Dim selText As String
+  Dim sProfiles As String[]
+
+  selText = Null
+  If cmbProfile.Index > -1 Then selText = cmbProfile.Text
+  cmbProfile.Clear
+  If cSettings.Count = 0 Then
+    cmbProfile.Enabled = False
+    LoadProfileData(Null)
+  Else
+    sProfiles = cSettings.GetProfileNames
+    For I = 0 To sProfiles.Length - 1
+      cmbProfile.Add(sProfiles[I])
+    Next
+    cmbProfile.Enabled = True
+    If Not selText Then
+      cmbProfile.Index = 0
+    Else
+      For I = 0 To cmbProfile.List.Count - 1
+        If cmbProfile.List[I] = selText Then
+          cmbProfile.Index = I
+          Break
+        Endif
+      Next
+      If cmbProfile.Index = -1 Then cmbProfile.Index = 0
+    Endif
+    'LoadProfileData(cmbProfile.Text)
+  Endif
+
+End
+
+Private Sub LoadProfileData(ProfileName As String)
+
+  Dim proFail As Boolean
+  Dim iSize, alg As Byte
+  Dim iPeriod As Short
+  Dim sSecret, sPast, sPresent, sFuture As String
+
+  If Not ProfileName Then
+    proFail = True
+  Else If Not cSettings.GetProfileNames.Exist(ProfileName, gb.Binary) Then
+    proFail = True
+  Endif
+  If proFail Then
+    txtCodePast.Width = txtCodePast.Font.TextWidth("000 000")
+    txtCode.Width = txtCode.Font.TextWidth("000 000") + (Desktop.Scale * 2)
+    txtCodeFuture.Width = txtCodeFuture.Font.TextWidth("000 000")
+    txtCodePast.Text = "000 000"
+    txtCode.Text = "000 000"
+    txtCodeFuture.Text = "000 000"
+    If cmbProfile.List.Count = 0 Then
+      cmbProfile.Index = -1
+    Else
+      cmbProfile.Index = 0
+    Endif
+    If priorSlice > 0 Then cSettings.LastSelectedProfileName = Null
+    Return
+  Endif
+  sSecret = cSettings.ProfileSecretR(ProfileName)
+  iSize = cSettings.ProfileDigitsR(ProfileName)
+  alg = cSettings.ProfileAlgorithmR(ProfileName)
+  iPeriod = cSettings.ProfilePeriodR(ProfileName)
+  sPast = GetCode(sSecret, iSize, alg, iPeriod, -1)
+  sPresent = GetCode(sSecret, iSize, alg, iPeriod, 0)
+  sFuture = GetCode(sSecret, iSize, alg, iPeriod, 1)
+  If iSize = 6 Then
+    sPast = Left$(sPast, 3) & " " & Mid$(sPast, 4)
+    sPresent = Left$(sPresent, 3) & " " & Mid$(sPresent, 4)
+    sFuture = Left$(sFuture, 3) & " " & Mid$(sFuture, 4)
+  Else If iSize = 8 Then
+    sPast = Left$(sPast, 4) & " " & Mid$(sPast, 5)
+    sPresent = Left$(sPresent, 4) & " " & Mid$(sPresent, 5)
+    sFuture = Left$(sFuture, 4) & " " & Mid$(sFuture, 5)
+  Endif
+  txtCodePast.Width = txtCodePast.Font.TextWidth(sPast)
+  txtCode.Width = txtCode.Font.TextWidth(sPresent) + (Desktop.Scale * 2)
+  txtCodeFuture.Width = txtCodeFuture.Font.TextWidth(sFuture)
+  txtCodePast.Text = sPast
+  txtCode.Text = sPresent
+  txtCodeFuture.Text = sFuture
+  ' txtCodePast.SelectAll()
+  ' txtCodeFuture.SelectAll()
+  ' txtCode.SelectAll()
+  If priorSlice > 0 Then cSettings.LastSelectedProfileName = ProfileName
+
+End
+
+Public Sub cmbProfile_Click()
+
+  If cSettings.Count > 0 Then LoadProfileData(cmbProfile.Text)
+
+End
+
+Public Sub txtCodePast_MouseDown()
+
+  txtCodePast.SelectAll
+
+End
+
+Public Sub txtCodePast_MouseUp()
+
+  txtCodePast.SelectAll
+  If Mouse.Left Then Clipboard.Copy(Replace(txtCodePast.Text, " ", ""), "text/plain")
+
+End
+
+Public Sub txtCode_MouseDown()
+
+  txtCode.SelectAll
+
+End
+
+Public Sub txtCode_MouseUp()
+
+  txtCode.SelectAll
+  If Mouse.Left Then Clipboard.Copy(Replace(txtCode.text, " ", ""), "text/plain")
+
+End
+
+Public Sub txtCodeFuture_MouseDown()
+
+  txtCodeFuture.SelectAll
+
+End
+
+Public Sub txtCodeFuture_MouseUp()
+
+  txtCodeFuture.SelectAll
+  If Mouse.Left Then Clipboard.Copy(Replace(txtCodeFuture.text, " ", ""), "text/plain")
+
+End
+
+Public Sub cmdQR_Click()
+
+  Dim sQR As String
+  Dim sQRs As String[]
+
+  cmdQR.Enabled = False
+  Me.Visible = False
+  sQRs = cQR.ScanScreens()
+  Me.Visible = True
+  For Each sQR In sQRs
+    ParseOTPURL(sQR, True)
+  Next
+  cmdQR.Enabled = True
+
+End
+
+Public Sub ParseOTPURL(sURL As String, fromQR As Boolean)
+
+  Dim foundMatch As Boolean
+  Dim iSize, sAlg As Byte
+  Dim iPeriod As Short
+  Dim I, idx As Integer
+  Dim sName, sSecret, sIssuer, sAccount, sKey, sVal, sDetection, trueName, sEnd, sFrom As String
+  Dim sProfiles As String[]
+  Dim uri As URL
+  Dim sQuery As URLQuery
+
+  If Not sURL Then
+    If fromQR Then
+      Message.Error(("Unable to find any QR codes on the screen."))
+    Else
+      Message.Error(("The One-Time-Password Auth URL could not be read."))
+    Endif
+    Return
+  Endif
+  If fromQR Then
+    sFrom = ("QR Code")
+  Else
+    sFrom = ("URL")
+  Endif
+  Try uri = URL.FromString(sURL)
+  If Error Then
+    If fromQR Then
+      Message.Error(("Found a QR code, but it doesn't contain a valid URL."))
+    Else
+      Message.Error(("The One-Time-Password Auth URL does not appear to be valid."))
+    Endif
+    Return
+  Endif
+  If Not (LCase$(uri.Protocol) = "otpauth") Then
+    If fromQR Then
+      Message.Error(("Found a QR code, but it doesn't contain One-Time-Password Auth information."))
+    Else
+      Message.Error(("The URL does not contain One-Time-Password Auth information."))
+    Endif
+    Return
+  Endif
+
+  If LCase$(uri.Host) = "hotp" Then
+    Message.Error(Subst(("One-Time-Password Auth &1 is HMAC-based. Only Time-based authentication is supported at present."), sFrom))
+    Return
+  Endif
+  If Not (LCase$(uri.Host) = "totp") Then
+    Message.Error(Subst(("One-Time-Password Auth &1 is not Time-based. Only Time-based authentication is supported at present."), sFrom))
+    Return
+  Endif
+  sName = uri.Path
+  sSecret = ""
+  iSize = 6
+  sAlg = HashAlgorithm.SHA1
+  iPeriod = 30
+  If Not sName Then
+    sName = ("Untitled Account")
+  Else
+    If String.Left(sName, 1) = "/" Then sName = String.Mid(sName, 2)
+    If String.InStr(sName, ":") > 0 Then
+      sIssuer = String.Left(sName, String.InStr(sName, ":") - 1)
+      sAccount = Trim$(String.Mid(sName, String.InStr(sName, ":") + 1))
+      sName = sIssuer & " (" & sAccount & ")"
+    Endif
+  Endif
+  sQuery = uri.Query
+  If Not sQuery Then
+    Message.Error(Subst(("Unable to read query variables in One-Time-Password Auth &1."), sFrom))
+    Return
+  Endif
+  For I = 0 To sQuery.Count - 1
+    sKey = String.LCase(sQuery.Keys[I])
+    sVal = sQuery[sQuery.Keys[I]]
+    If sKey = "algorithm" Then
+      If String.UCase(sVal) = "SHA1" Then
+        sAlg = HashAlgorithm.SHA1
+      Else If String.UCase(sVal) = "SHA256" Then
+        sAlg = HashAlgorithm.SHA256
+      Else If String.UCase(sVal) = "SHA512" Then
+        sAlg = HashAlgorithm.SHA512
+      Else
+        Message.Error(Subst(("This profile uses the &1 hashing algorithm. SHA1, SHA256, and SHA512 are the only supported algorithms at present."), sVal))
+        Return
+      Endif
+    Else If sKey = "period" Then
+      iPeriod = CShort(sVal)
+      If iPeriod < 1 Or iPeriod > 86400 Then
+        Message.Error(Subst(("This profile uses a &1 second interval. Intervals must be between 1 and 86400 seconds."), sVal))
+        Return
+      Endif
+    Else If sKey = "digits" Then
+      iSize = CByte(sVal)
+      If Not (iSize = 6 Or iSize = 8) Then
+        Message.Error(Subst(("This profile uses &1 digits. Only six or eight digits are supported at present."), iSize))
+        Return
+      Endif
+    Else If sKey = "secret" Then
+      sSecret = sVal
+    Else If sKey = "issuer" Then
+      If String.InStr(sName, sVal) = 0 Then sName = sVal & " (" & sName & ")"
+    Endif
+  Next
+  If Not sSecret Then
+    Message.Error(Subst(("No secret value was found in One-Time-Password Auth &1."), sFrom))
+    Return
+  Endif
+  trueName = sName
+  sProfiles = cSettings.GetProfileNames
+  If sProfiles Then
+    idx = 2
+    Do
+      foundMatch = False
+      For I = 0 To sProfiles.Length - 1
+        If Not (String.LCase(sProfiles[I]) = String.LCase(sName)) Then Continue
+        foundMatch = True
+        If InStr(sName, " ") > -1 Then
+          sEnd = String.Mid(sName, String.RInStr(sName, " ") + 1)
+          If Val(sEnd) Then
+            sName = String.Left(sName, String.RInStr(sName, " ") - 1)
+            idx += 1
+          Endif
+        Endif
+        sName &= " " & idx
+      Next
+      If Not foundMatch Then Break
+    Loop
+  End If
+  sDetection = "&nbsp;&nbsp;" & sName
+  If Not (iSize = 6) Then sDetection &= "<br>&nbsp;&nbsp;" & iSize & " digits"
+  If Not (sAlg = HashAlgorithm.SHA1) Then sDetection &= "<br>&nbsp;&nbsp;" & Subst(("&1 Hashing algorithm"), HashAlgorithm.ToString(sAlg))
+  If Not (iPeriod = 30) Then sDetection &= "<br>&nbsp;&nbsp;" & Subst(("&1 second Period"), iPeriod)
+  sDetection &= "<br>&nbsp;&nbsp;" & Subst(("Secret: &1"), sSecret)
+  Message.Title = ("Add New Profile?")
+  If fromQR Then
+    If Message.Question(("Detected new Authenticator Profile:") & "<br>" & sDetection & "<br><br>" & Subst(("Do you wish to add this profile to &1?"), Application.Title), ("&Yes"), ("&No")) = 2 Then Return
+  Else
+    If Message.Question(("Received new Authenticator Profile:") & "<br>" & sDetection & "<br><br>" & Subst(("Do you wish to add this profile to &1?"), Application.Title), ("&Yes"), ("&No")) = 2 Then Return
+  Endif
+  If Not cSettings.AddProfile(sName, sSecret, iSize, sAlg, iPeriod, trueName) Then
+    Message.Error(("Failed to create new profile."))
+    Return
+  Endif
+  UpdateProfileListing
+  For I = 0 To cmbProfile.List.Count - 1
+    If cmbProfile.List[I] = sName Then
+      cmbProfile.Index = I
+      Break
+    Endif
+  Next
+  If frmProfiles.Visible Then frmProfiles.UpdateProfileListing
+
+End

@@ -1,0 +1,6 @@
+' Gambas class file
+
+Public PassKey As Byte[]
+Public Salt As Byte[]
+Public AuthKey As Byte[]
+Public PassVerifier As Short

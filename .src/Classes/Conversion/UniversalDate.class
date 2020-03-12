@@ -1,0 +1,15 @@
+' Gambas class file
+
+Create Private
+
+Static Public Function ToUTC(dDate As Date) As Date
+
+  Return DateAdd(dDate, gb.Second, System.TimeZone)
+
+End
+
+Static Public Function ToLocal(dDate As Date) As Date
+
+  Return DateAdd(dDate, gb.Second, -System.TimeZone)
+
+End

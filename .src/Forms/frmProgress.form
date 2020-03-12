@@ -1,0 +1,29 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,46,15)
+  NoTabFocus = True
+  Text = ("Progress")
+  Icon = Picture["icon:/huge/clock"]
+  Resizable = False
+  SkipTaskbar = True
+  Arrangement = Arrange.Fill
+  AutoResize = True
+  Spacing = True
+  Margin = True
+  { pnlProgress VBox
+    MoveScaled(1,1,44,13)
+    AutoResize = True
+    Spacing = True
+    Margin = True
+    { lblProgress Label
+      MoveScaled(1,1,42,6)
+      AutoResize = True
+      Text = ("Label1")
+      Alignment = Align.TopLeft
+    }
+    { pbProgress ProgressBar
+      MoveScaled(1,8,42,4)
+    }
+  }
+}

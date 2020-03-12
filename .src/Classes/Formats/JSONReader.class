@@ -1,0 +1,313 @@
+' Gambas class file
+
+Public Serial As JSElement[]
+Public TextEncoding As String
+
+Public Sub _new(Optional iStream As File = Null, Optional ExpectUTF8 As Boolean = True)
+
+  Dim bom0, bom1, bom2, bom3 As Integer
+  Dim workElement As JSElement
+
+  If Not iStream Then
+    Serial = New JSElement[]
+    Return
+  Endif
+  TextEncoding = "ISO-8859-1"
+  bom0 = Read #iStream As Byte
+  bom1 = Read #iStream As Byte
+  bom2 = Read #iStream As Byte
+  bom3 = Read #iStream As Byte
+  If bom0 = &EF And bom1 = &BB And bom2 = &BF Then
+    TextEncoding = "UTF-8"
+    Seek #iStream, 3
+  Else If bom0 = &0 And bom1 = &0 And bom2 = &FE And bom3 = &FF Then
+    TextEncoding = "UTF-32BE"
+  Else If bom0 = &FF And bom1 = &FE And bom2 = &0 And bom3 = &0 Then
+    TextEncoding = "UTF-32LE"
+  Else If bom0 = &FE And bom1 = &FF Then
+    TextEncoding = "UTF-16BE"
+    Seek #iStream, 2
+  Else If bom0 = &FF And bom1 = &FE Then
+    TextEncoding = "UTF-16LE"
+    Seek #iStream, 2
+  Else
+    Seek #iStream, 0
+    If ExpectUTF8 Then TextEncoding = "UTF-8"
+  Endif
+  Serial = New JSElement[]
+  workElement = ReadElement(iStream, TextEncoding)
+  Do Until workElement.Type = JSElementType.None
+    Serial.Push(workElement)
+    workElement = Null
+    workElement = ReadElement(iStream, TextEncoding)
+  Loop
+
+End
+
+Public Sub Save(sFile As String, Optional streamEncoding As String = Null)
+
+  Dim I As Integer
+  Dim sJSON As String
+
+  If Not streamEncoding Then streamEncoding = TextEncoding
+  sJson = Null
+  For I = 0 To Serial.Length - 1
+    sJSON &= Deserialize(Serial[I], 0)
+  Next
+  If String.Right(sJSON, 2) = ",\n" Then sJSON = String.Left(sJSON, -2) & "\n"
+  File.Save(sFile, Conv$(sJSON, "UTF-8", streamEncoding))
+
+End
+
+Static Private Function Deserialize(el As JSElement, indent As Integer) As String
+
+  Dim I As Integer
+  Dim sRet As String
+
+  sRet = Null
+  Select Case el.Type
+    Case JSElementType.KeyValue
+      sRet = Space$(indent) & "\"" & el.Key & "\": \"" & el.value & "\",\n"
+    Case JSElementType.Group
+      If el.Key Then
+        sRet = Space$(indent) & "\"" & el.Key & "\":\n"
+      Endif
+      sRet &= Space$(indent) & "{\n"
+      For I = 0 To el.SubElements.Length - 1
+        sRet &= Deserialize(el.SubElements[I], indent + 1)
+      Next
+      If String.Right(sRet, 2) = ",\n" Then sRet = String.Left(sRet, -2) & "\n"
+      sRet &= Space$(indent) & "},\n"
+    Case JSElementType.Array
+      If el.Key Then
+        sRet = Space$(indent) & "\"" & el.Key & "\":\n"
+      Endif
+      sRet &= Space$(indent) & "[\n"
+      For I = 0 To el.Collection.Length - 1
+        sRet &= Deserialize(el.Collection[I], indent + 1)
+      Next
+      If String.Right(sRet, 2) = ",\n" Then sRet = String.Left(sRet, -2) & "\n"
+      sRet &= Space$(indent) & "],\n"
+  End Select
+  Return sRet
+
+End
+
+Static Private Function ReadCharacter(iStream As File, streamEncoding As String) As String
+
+  Dim b0, b1, b2, b3, uChar As Integer
+
+  Select Case streamEncoding
+    Case "ISO-8859-1"
+      b0 = Read #iStream As Byte
+      Return String.Chr(b0)
+    Case "UTF-8"
+      b0 = Read #iStream As Byte
+      If (b0 And &E0) = &C0 Then
+        b1 = Read #iStream As Byte
+        b0 = (b0 And &1F)
+        b1 = (b1 And &3F)
+        uChar = Lsl(b0, 6) Or b1
+      Else If (b0 And &F0) = &E0 Then
+        b1 = Read #iStream As Byte
+        b2 = Read #iStream As Byte
+        b0 = (b0 And &F)
+        b1 = (b1 And &3F)
+        b2 = (b2 And &3F)
+        uChar = Lsl(b0, 12) Or Lsl(b1, 6) Or b2
+      Else If (b0 And &F8) = &F0 Then
+        b1 = Read #iStream As Byte
+        b2 = Read #iStream As Byte
+        b3 = Read #iStream As Byte
+        b0 = (b0 And &7)
+        b1 = (b1 And &3F)
+        b2 = (b2 And &3F)
+        b3 = (b3 And &3F)
+        uChar = Lsl(b0, 18) Or Lsl(b1, 12) Or Lsl(b2, 6) Or b3
+      Else
+        uChar = (b0 And &7F)
+      Endif
+    Case "UTF-16LE"
+      b0 = Read #iStream As Byte
+      b1 = Read #iStream As Byte
+      If (b1 And &F8) = &D8 Then
+        b2 = Read #iStream As Byte
+        b3 = Read #iStream As Byte
+        uChar = BitConverter.GetInteger([b0, b1, b2, b3])
+      Else
+        uChar = BitConverter.GetShort([b0, b1])
+      Endif
+    Case "UTF-16BE"
+      b0 = Read #iStream As Byte
+      b1 = Read #iStream As Byte
+      If (b0 And &F8) = &D8 Then
+        b2 = Read #iStream As Byte
+        b3 = Read #iStream As Byte
+        uChar = BitConverter.GetInteger([b3, b2, b1, b0])
+      Else
+        uChar = BitConverter.GetShort([b1, b0])
+      Endif
+    Case "UTF-32LE", "UTF-32BE"
+      b0 = Read #iStream As Byte
+      b1 = Read #iStream As Byte
+      b2 = Read #iStream As Byte
+      b3 = Read #iStream As Byte
+      If streamEncoding = "UTF-32LE"
+        uChar = BitConverter.GetInteger([b0, b1, b2, b3])
+      Else
+        uChar = BitConverter.GetInteger([b3, b2, b1, b0])
+      Endif
+    Case Else
+      b0 = Read #iStream As Byte
+      uChar = b0
+  End Select
+  Return String.Chr(uChar)
+  'Catch
+  '  Return Null
+
+End
+
+Static Private Function ReadElement(iStream As File, streamEncoding As String) As JSElement
+
+  Dim escape As Boolean
+  Dim sRead, sKey, sText, sNext, sVal As String
+  Dim el As JSElement
+  Dim workElement As JSElement
+
+  el = New JSElement(JSElementType.None)
+
+  If Eof(iStream) Then
+    el.Type = JSElementType.None
+    Return el
+  Endif
+  sRead = ReadCharacter(iStream, streamEncoding)
+  Do Until Not sRead
+    If sRead = "{" Then
+      el.Type = JSElementType.Group
+      el.SubElements = New JSElement[]
+      workElement = ReadElement(iStream, streamEncoding)
+      Do Until workElement.Type = JSElementType.None
+        el.SubElements.Push(workElement)
+        workElement = Null
+        If Eof(iStream) Then Break
+        workElement = ReadElement(iStream, streamEncoding)
+      Loop
+      workElement = Null
+      Return el
+    Else If sRead = "}" Then
+      el.Type = JSElementType.None
+      Return el
+    Else If sRead = "[" Then
+      el.Type = JSElementType.Array
+      el.Collection = New JSElement[]
+      workElement = ReadElement(iStream, streamEncoding)
+      Do Until workElement.Type = JSElementType.None
+        el.Collection.Push(workElement)
+        workElement = Null
+        If Eof(iStream) Then Break
+        workElement = ReadElement(iStream, streamEncoding)
+      Loop
+      workElement = Null
+      Return el
+    Else If sRead = "]" Then
+      el.Type = JSElementType.None
+      Return el
+    Else If sRead = "\"" Then
+      el.Type = JSElementType.KeyValue
+      sKey = Null
+      sText = ReadCharacter(iStream, streamEncoding)
+      escape = False
+      Do While sText
+        If escape Then
+          sKey &= "\\" & sText
+          escape = False
+        Else If sText = "\\" Then
+          escape = True
+        Else If sText = "\"" Then
+          Break
+        Else
+          sKey &= sText
+          escape = False
+        Endif
+        If Eof(iStream) Then
+          el.Type = JSElementType.None
+          el.Key = Null
+          Return el
+        Endif
+        sText = ReadCharacter(iStream, streamEncoding)
+      Loop
+      el.Key = sKey
+      If Eof(iStream) Then
+        el.Type = JSElementType.None
+        el.Key = Null
+        Return el
+      Endif
+      sNext = ReadCharacter(iStream, streamEncoding)
+      Do While sNext
+        If sNext = "\"" Then Break
+        If sNext = "[" Then Break
+        If sNext = "{" Then Break
+        If Eof(iStream) Then
+          el.Type = JSElementType.None
+          el.Key = Null
+          Return el
+        Endif
+        sNext = ReadCharacter(iStream, streamEncoding)
+      Loop
+      If sNext = "[" Then
+        el.Type = JSElementType.Array
+        el.Collection = New JSElement[]
+        workElement = ReadElement(iStream, streamEncoding)
+        Do Until workElement.Type = JSElementType.None
+          el.Collection.Push(workElement)
+          workElement = Null
+          If Eof(iStream) Then Break
+          workElement = ReadElement(iStream, streamEncoding)
+        Loop
+        workElement = Null
+      Else If sNext = "{" Then
+        el.Type = JSElementType.Group
+        el.SubElements = New JSElement[]
+        workElement = ReadElement(iStream, streamEncoding)
+        Do Until workElement.Type = JSElementType.None
+          el.SubElements.Push(workElement)
+          workElement = Null
+          If Eof(iStream) Then Break
+          workElement = ReadElement(iStream, streamEncoding)
+        Loop
+        workElement = Null
+      Else
+        sText = ReadCharacter(iStream, streamEncoding)
+        escape = False
+        sVal = Null
+        Do While sText
+          If escape Then
+            sVal &= "\\" & sText
+            escape = False
+          Else If sText = "\\" Then
+            escape = True
+          Else If sText = "\"" Then
+            Break
+          Else
+            sVal &= sText
+            escape = False
+          Endif
+          If Eof(iStream) Then
+            el.Type = JSElementType.None
+            el.Key = Null
+            el.Value = Null
+            Return el
+          Endif
+          sText = ReadCharacter(iStream, streamEncoding)
+        Loop
+        el.Value = sVal
+      Endif
+      Return el
+    Endif
+    If Eof(iStream) Then Break
+    sRead = ReadCharacter(iStream, streamEncoding)
+  Loop
+  el.Type = JSElementType.None
+  Return el
+
+End

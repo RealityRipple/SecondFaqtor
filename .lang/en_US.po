@@ -1,0 +1,518 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SecondFaqtor 3.14.90\n"
+"PO-Revision-Date: 2020-02-20 22:12 UTC\n"
+"Last-Translator: Andrew Sachen <webmaster@RealityRipple.com>\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: .project:1 frmMain.form:27
+msgid "SecondFaqtor"
+msgstr "SecondFaqtor"
+
+#: .project:2
+msgid "Two-Factor Authenticator for Linux"
+msgstr "Two-Factor Authenticator for Linux"
+
+#: ZIP.class:296
+msgid "Unable to decrypt this backup. Please double-check your password."
+msgstr "Unable to decrypt this backup. Please double-check your password."
+
+#: frmBackup.class:58
+msgid "&1 instead of &2"
+msgstr "&1 instead of &2"
+
+#: frmBackup.class:58
+msgid "An iteration count of &1 instead of 1,000 rounds"
+msgstr "An iteration count of &1 instead of 1,000 rounds"
+
+#: frmBackup.class:58
+msgid "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools."
+msgstr "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools."
+
+#: frmBackup.class:58
+msgid "For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:"
+msgstr "For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:"
+
+#: frmBackup.class:58
+msgid "These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
+msgstr "These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
+
+#: frmBackup.class:158
+msgid "Export &1 Profile..."
+msgstr "Export &1 Profile..."
+
+#: frmBackup.class:160
+msgid "Export &1 &2 Profiles..."
+msgstr "Export &1 &2 Profiles..."
+
+#: frmBackup.class:176
+msgid "See &1 for details."
+msgstr "See &1 for details."
+
+#: frmBackup.class:176
+msgid "This Zip file's encryption is enhanced with &1 and &2 rounds."
+msgstr "This Zip file's encryption is enhanced with &1 and &2 rounds."
+
+#: frmBackup.class:176
+msgid "Your archive application may have trouble opening this file."
+msgstr "Your archive application may have trouble opening this file."
+
+#: frmBackup.class:183
+msgid "Backup Completed"
+msgstr "Backup Completed"
+
+#: frmBackup.class:184
+msgid "Your Backup has been saved to \"&1\". Please keep this backup safe!"
+msgstr "Your Backup has been saved to \"&1\". Please keep this backup safe!"
+
+#: frmBackup.class:238
+msgid "Select &1 Profiles Backup File..."
+msgstr "Select &1 Profiles Backup File..."
+
+#: frmBackup.class:356
+msgid "Import Profile?"
+msgstr "Import Profile?"
+
+#: frmBackup.class:358 frmMain.class:397 frmProfiles.class:74
+msgid "&No"
+msgstr "&No"
+
+#: frmBackup.class:358 frmMain.class:397 frmProfiles.class:74
+msgid "&Yes"
+msgstr "&Yes"
+
+#: frmBackup.class:358
+msgid "Are you sure you want to import the \"&1\" profile?"
+msgstr "Are you sure you want to import the \"&1\" profile?"
+
+#: frmBackup.class:358
+msgid "The existing profile with the same name will be overwritten."
+msgstr "The existing profile with the same name will be overwritten."
+
+#: frmBackup.class:376
+msgid "Import Profiles?"
+msgstr "Import Profiles?"
+
+#: frmBackup.class:378
+msgid "Any existing profiles with the same names (marked with an asterisk below) will be overwritten."
+msgstr "Any existing profiles with the same names (marked with an asterisk below) will be overwritten."
+
+#: frmBackup.class:378
+msgid "Are you sure you want to import the following &1 profiles?"
+msgstr "Are you sure you want to import the following &1 profiles?"
+
+#: frmBackup.class:430
+msgid "Import Completed"
+msgstr "Import Completed"
+
+#: frmBackup.class:432
+msgid "One profile has been added."
+msgstr "One profile has been added."
+
+#: frmBackup.class:432
+msgid "Your backup has been restored! "
+msgstr "Your backup has been restored! "
+
+#: frmBackup.class:434
+msgid "&1 profiles have been added."
+msgstr "&1 profiles have been added."
+
+#: frmBackup.class:437
+msgid "Import Failed"
+msgstr "Import Failed"
+
+#: frmBackup.class:438
+msgid "There was an error saving a profile!"
+msgstr "There was an error saving a profile!"
+
+#: frmBackup.form:35
+msgid "Backup and Restore Profiles"
+msgstr "Backup and Restore Profiles"
+
+#: frmBackup.form:49 frmProfiles.form:227
+msgid "Backup Profiles"
+msgstr "Backup Profiles"
+
+#: frmBackup.form:64
+msgid "Select All"
+msgstr "Select All"
+
+#: frmBackup.form:85
+msgid "Use Advanced Encryption"
+msgstr "Use Advanced Encryption"
+
+# gb-ignore
+#: frmBackup.form:96
+msgid "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.<br><br>\nFor advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:<br>\n&nbsp;&bull; HMAC-SHA-512 instead of HMAC-SHA-1<br>\n&nbsp;&bull; A dynamically set iteration count instead of 1,000 rounds<br><br>\nThese features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
+msgstr ""
+
+#: frmBackup.form:111
+msgid "Export Selected Profiles"
+msgstr "Export Selected Profiles"
+
+#: frmBackup.form:120
+msgid "Import Profiles"
+msgstr "Import Profiles"
+
+#: frmBackup.form:136
+msgid "Backup File:"
+msgstr "Backup File:"
+
+#: frmBackup.form:177
+msgid "Import Selected Profiles"
+msgstr "Import Selected Profiles"
+
+#: frmMain.class:276
+msgid "Unable to find any QR codes on the screen."
+msgstr "Unable to find any QR codes on the screen."
+
+#: frmMain.class:278
+msgid "The One-Time-Password Auth URL could not be read."
+msgstr "The One-Time-Password Auth URL could not be read."
+
+#: frmMain.class:283
+msgid "QR Code"
+msgstr "QR Code"
+
+#: frmMain.class:285
+msgid "URL"
+msgstr "URL"
+
+#: frmMain.class:290
+msgid "Found a QR code, but it doesn't contain a valid URL."
+msgstr "Found a QR code, but it doesn't contain a valid URL."
+
+#: frmMain.class:292
+msgid "The One-Time-Password Auth URL does not appear to be valid."
+msgstr "The One-Time-Password Auth URL does not appear to be valid."
+
+#: frmMain.class:298
+msgid "Found a QR code, but it doesn't contain One-Time-Password Auth information."
+msgstr "Found a QR code, but it doesn't contain One-Time-Password Auth information."
+
+#: frmMain.class:300
+msgid "The URL does not contain One-Time-Password Auth information."
+msgstr "The URL does not contain One-Time-Password Auth information."
+
+#: frmMain.class:306
+msgid "One-Time-Password Auth &1 is HMAC-based. Only Time-based authentication is supported at present."
+msgstr "One-Time-Password Auth &1 is HMAC-based. Only Time-based authentication is supported at present."
+
+#: frmMain.class:310
+msgid "One-Time-Password Auth &1 is not Time-based. Only Time-based authentication is supported at present."
+msgstr "One-Time-Password Auth &1 is not Time-based. Only Time-based authentication is supported at present."
+
+#: frmMain.class:319 frmProfiles.class:39
+msgid "Untitled Account"
+msgstr "Untitled Account"
+
+#: frmMain.class:330
+msgid "Unable to read query variables in One-Time-Password Auth &1."
+msgstr "Unable to read query variables in One-Time-Password Auth &1."
+
+#: frmMain.class:344
+msgid "This profile uses the &1 hashing algorithm. SHA1, SHA256, and SHA512 are the only supported algorithms at present."
+msgstr "This profile uses the &1 hashing algorithm. SHA1, SHA256, and SHA512 are the only supported algorithms at present."
+
+#: frmMain.class:350
+msgid "This profile uses a &1 second interval. Intervals must be between 1 and 86400 seconds."
+msgstr "This profile uses a &1 second interval. Intervals must be between 1 and 86400 seconds."
+
+#: frmMain.class:356
+msgid "This profile uses &1 digits. Only six or eight digits are supported at present."
+msgstr "This profile uses &1 digits. Only six or eight digits are supported at present."
+
+#: frmMain.class:366
+msgid "No secret value was found in One-Time-Password Auth &1."
+msgstr "No secret value was found in One-Time-Password Auth &1."
+
+#: frmMain.class:392
+msgid "&1 Hashing algorithm"
+msgstr "&1 Hashing algorithm"
+
+#: frmMain.class:393
+msgid "&1 second Period"
+msgstr "&1 second Period"
+
+#: frmMain.class:394
+msgid "Secret: &1"
+msgstr "Secret: &1"
+
+#: frmMain.class:395
+msgid "Add New Profile?"
+msgstr "Add New Profile?"
+
+#: frmMain.class:397
+msgid "Detected new Authenticator Profile:"
+msgstr "Detected new Authenticator Profile:"
+
+#: frmMain.class:397
+msgid "Do you wish to add this profile to &1?"
+msgstr "Do you wish to add this profile to &1?"
+
+#: frmMain.class:399
+msgid "Received new Authenticator Profile:"
+msgstr "Received new Authenticator Profile:"
+
+#: frmMain.class:402
+msgid "Failed to create new profile."
+msgstr "Failed to create new profile."
+
+# gb-ignore
+#: frmMain.form:59
+msgid "000 000"
+msgstr ""
+
+#: frmMain.form:124
+msgid "Authenticator Profiles"
+msgstr "Authenticator Profiles"
+
+#: frmPassEntry.class:14
+msgid "Show Password"
+msgstr "Show Password"
+
+#: frmPassEntry.class:28
+msgid "Log In to &1"
+msgstr "Log In to &1"
+
+#: frmPassEntry.class:29
+msgid "Enter your &1 Password to Continue:"
+msgstr "Enter your &1 Password to Continue:"
+
+#: frmPassEntry.class:37
+msgid "Add a Password"
+msgstr "Add a Password"
+
+#: frmPassEntry.class:38
+msgid "Enter a Password to secure &1:"
+msgstr "Enter a Password to secure &1:"
+
+#: frmPassEntry.class:46
+msgid "Change Your Password"
+msgstr "Change Your Password"
+
+#: frmPassEntry.class:47
+msgid "(An empty password will remove the password feature)"
+msgstr "(An empty password will remove the password feature)"
+
+#: frmPassEntry.class:47
+msgid "Enter a New Password for &1:"
+msgstr "Enter a New Password for &1:"
+
+#: frmPassEntry.class:55
+msgid "Export Your Profiles"
+msgstr "Export Your Profiles"
+
+#: frmPassEntry.class:56
+msgid "Enter a Password to secure your Backup:"
+msgstr "Enter a Password to secure your Backup:"
+
+#: frmPassEntry.class:64
+msgid "Import a Profile"
+msgstr "Import a Profile"
+
+#: frmPassEntry.class:65
+msgid "Enter your Backup File Password:"
+msgstr "Enter your Backup File Password:"
+
+#: frmPassEntry.class:97
+msgid "Hide Password"
+msgstr "Hide Password"
+
+#: frmPassEntry.form:16
+msgid "Password"
+msgstr "Password"
+
+# gb-ignore
+#: frmPassEntry.form:46 frmProgress.form:29
+msgid "Label1"
+msgstr ""
+
+#: frmPassEntry.form:65
+msgid "OK"
+msgstr "OK"
+
+#: frmPassEntry.form:71
+msgid "Cancel"
+msgstr "Cancel"
+
+#: frmProfiles.class:40
+msgid "Untitled Account &1"
+msgstr "Untitled Account &1"
+
+#: frmProfiles.class:73
+msgid "Remove &1 Profile?"
+msgstr "Remove &1 Profile?"
+
+#: frmProfiles.class:74
+msgid "Are you sure you want to remove the &1 profile?"
+msgstr "Are you sure you want to remove the &1 profile?"
+
+#: frmProfiles.class:74
+msgid "If this profile is still used by a website or service, you may no longer be able to access the associated account."
+msgstr "If this profile is still used by a website or service, you may no longer be able to access the associated account."
+
+#: frmProfiles.class:74
+msgid "Please be absolutely certain you wish to proceed before clicking \"Yes\"."
+msgstr "Please be absolutely certain you wish to proceed before clicking \"Yes\"."
+
+#: frmProfiles.class:88
+msgid "Please enter a name for this Profile."
+msgstr "Please enter a name for this Profile."
+
+#: frmProfiles.class:96
+msgid "Please enter a unique name for this Profile."
+msgstr "Please enter a unique name for this Profile."
+
+#: frmProfiles.class:104
+msgid "Invalid secret value. Please double-check your entry."
+msgstr "Invalid secret value. Please double-check your entry."
+
+#: frmProfiles.class:114
+msgid "Number of digits must be six or eight."
+msgstr "Number of digits must be six or eight."
+
+#: frmProfiles.class:150
+msgid "Discard Changes?"
+msgstr "Discard Changes?"
+
+#: frmProfiles.class:151
+msgid "Are you sure you want to close without saving the changes to your Profile?"
+msgstr "Are you sure you want to close without saving the changes to your Profile?"
+
+#: frmProfiles.class:189
+msgid "Require Login"
+msgstr "Require Login"
+
+#: frmProfiles.class:290
+msgid "The default name has already been set for this profile. Please save your changes before continuing."
+msgstr "The default name has already been set for this profile. Please save your changes before continuing."
+
+#: frmProfiles.class:296
+msgid "Reset Profile Name?"
+msgstr "Reset Profile Name?"
+
+#: frmProfiles.class:297
+msgid "Do you want to reset the name for this profile to its default value of \"&1\"?"
+msgstr "Do you want to reset the name for this profile to its default value of \"&1\"?"
+
+#: frmProfiles.class:368
+msgid "Show Secret"
+msgstr "Show Secret"
+
+#: frmProfiles.class:371
+msgid "Hide Secret"
+msgstr "Hide Secret"
+
+#: frmProfiles.form:41
+msgid "SecondFaqtor Authenticator Profile Configuration"
+msgstr "SecondFaqtor Authenticator Profile Configuration"
+
+#: frmProfiles.form:65
+msgid "Add Profile"
+msgstr "Add Profile"
+
+#: frmProfiles.form:71
+msgid "Remove Profile"
+msgstr "Remove Profile"
+
+#: frmProfiles.form:87
+msgid "Service:"
+msgstr "Service:"
+
+# gb-ignore
+#: frmProfiles.form:98
+msgid "●"
+msgstr ""
+
+#: frmProfiles.form:110
+msgid "Secret:"
+msgstr "Secret:"
+
+#: frmProfiles.form:127
+msgid "Digits:"
+msgstr "Digits:"
+
+#: frmProfiles.form:157
+msgid "Period:"
+msgstr "Period:"
+
+#: frmProfiles.form:181
+msgid "Hash:"
+msgstr "Hash:"
+
+# gb-ignore
+#: frmProfiles.form:188
+msgid "SHA1"
+msgstr ""
+
+# gb-ignore
+#: frmProfiles.form:188
+msgid "SHA256"
+msgstr ""
+
+# gb-ignore
+#: frmProfiles.form:188
+msgid "SHA512"
+msgstr ""
+
+#: frmProfiles.form:194
+msgid "Save"
+msgstr "Save"
+
+#: frmProfiles.form:200
+msgid "Reset"
+msgstr "Reset"
+
+#: frmProfiles.form:217
+msgid "Change Password"
+msgstr "Change Password"
+
+#: frmProfiles.form:233 mMain.module:45
+msgid "Close"
+msgstr "Close"
+
+#: frmProgress.class:19
+msgid "Encrypting your &1 Profiles"
+msgstr "Encrypting your &1 Profiles"
+
+#: frmProgress.class:20
+msgid "Your Profiles are being encrypted. Please wait..."
+msgstr "Your Profiles are being encrypted. Please wait..."
+
+#: frmProgress.class:29
+msgid "Decrypting your &1 Profiles"
+msgstr "Decrypting your &1 Profiles"
+
+#: frmProgress.class:30
+msgid "Your Backup File is being decrypted. Please wait..."
+msgstr "Your Backup File is being decrypted. Please wait..."
+
+#: frmProgress.form:11
+msgid "Progress"
+msgstr "Progress"
+
+#: mMain.module:40
+msgid "Retry"
+msgstr "Retry"
+
+#: mMain.module:40
+msgid "The password you entered was incorrect."
+msgstr "The password you entered was incorrect."
+
+#: mMain.module:40
+msgid "You have 2 attempts remaining."
+msgstr "You have 2 attempts remaining."
+
+#: mMain.module:42
+msgid "You have 1 attempt remaining."
+msgstr "You have 1 attempt remaining."
+
+#: mMain.module:45
+msgid "Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."
+msgstr "Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."
+

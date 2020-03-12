@@ -1,0 +1,5 @@
+' Gambas class file
+
+Create Private
+
+Public Enum AES128 = 1, AES192 = 2, AES256 = 3

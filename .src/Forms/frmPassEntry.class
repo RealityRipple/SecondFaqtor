@@ -1,0 +1,101 @@
+' Gambas class file
+
+Private sPass As String
+
+Public Sub Form_Open()
+
+  Dim daPass As DrawingArea
+  Dim cmdPass As ToolButton
+
+  txtPassword.Editor.Password = True
+  daPass = txtPassword.Children[0]
+  cmdPass = daPass.Children[1]
+  txtPassword.Picture = Picture["icon:/small/lock"]
+  cmdPass.Tooltip = ("Show Password")
+
+End
+
+Property Read Password As String
+
+Private Function Password_Read() As String
+
+  Return sPass
+
+End
+
+Public Sub Prepare_Login()
+
+  Me.Text = Subst(("Log In to &1"), Application.Title)
+  lblPassword.Text = Subst(("Enter your &1 Password to Continue:"), Application.Title)
+  lblPassword.Adjust
+  If lblPassword.Height < 40 Then lblPassword.Height = 40
+
+End
+
+Public Sub Prepare_NewPass()
+
+  Me.Text = ("Add a Password")
+  lblPassword.Text = Subst(("Enter a Password to secure &1:"), Application.Title)
+  lblPassword.Adjust
+  If lblPassword.Height < 40 Then lblPassword.Height = 40
+
+End
+
+Public Sub Prepare_ChangePass()
+
+  Me.Text = ("Change Your Password")
+  lblPassword.Text = Subst(("Enter a New Password for &1:"), Application.Title) & "\n" & ("(An empty password will remove the password feature)")
+  lblPassword.Adjust
+  If lblPassword.Height < 40 Then lblPassword.Height = 40
+
+End
+
+Public Sub Prepare_Export()
+
+  Me.Text = ("Export Your Profiles")
+  lblPassword.Text = ("Enter a Password to secure your Backup:")
+  lblPassword.Adjust
+  If lblPassword.Height < 40 Then lblPassword.Height = 40
+
+End
+
+Public Sub Prepare_Import()
+
+  Me.Text = ("Import a Profile")
+  lblPassword.Text = ("Enter your Backup File Password:")
+  lblPassword.Adjust
+  If lblPassword.Height < 40 Then lblPassword.Height = 40
+
+End
+
+Public Sub cmdOK_Click()
+
+  If Not txtPassword.Text And Not (Me.Text = ("Change Your Password")) Then Return
+  sPass = txtPassword.Text
+  Me.Close(True)
+
+End
+
+Public Sub cmdCancel_Click()
+
+  Me.Close
+
+End
+
+Public Sub txtPassword_Click()
+
+  Dim daPass As DrawingArea
+  Dim cmdPass As ToolButton
+
+  txtPassword.Editor.password = Not txtPassword.Editor.password
+  daPass = txtPassword.Children[0]
+  cmdPass = daPass.Children[1]
+  If txtPassword.Editor.Password Then
+    cmdPass.Tooltip = ("Show Password")
+    txtPassword.picture = Picture["icon:/small/lock"]
+  Else
+    cmdPass.Tooltip = ("Hide Password")
+    txtPassword.picture = Picture["icon:/small/unlock"]
+  Endif
+
+End

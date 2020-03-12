@@ -1,0 +1,22 @@
+' Gambas class file
+
+Public Type As Byte
+Public SubElements As JSElement[]
+Public Collection As JSElement[]
+Public (Key) As String
+Public Value As String
+
+Public Sub _new(bType As Byte, Optional sKey As String = Null, Optional sValue As String = Null)
+
+  Type = bType
+  If sKey Then Key = sKey
+  Select Case bType
+    Case JSElementType.KeyValue
+      If sValue Then Value = sValue
+    Case JSElementType.Group
+      SubElements = New JSElement[]
+    Case JSElementType.Array
+      Collection = New JSElement[]
+  End Select
+
+End

@@ -1,0 +1,61 @@
+' Gambas class file
+
+Create Private
+
+' Static Public Function ByteArrayToByteString(bData As Byte[]) As String
+'
+'   Dim I As Integer
+'   Dim sOut As String
+'
+'   If Not bData Then Return Null
+'   sOut = Null
+'   For I = 0 To bData.Length - 1
+'     sOut &= Hex$(bData[i], 2)
+'   Next
+'   Return sOut
+'
+' End
+
+' Static Public Function ByteStringToByteArray(sData As String) As Byte[]
+'
+'   Dim I As Integer
+'   Dim bOut As Byte[]
+'
+'   If Not sData Then Return Null
+'   bOut = New Byte[]
+'   For I = 0 To String.Len(sData) - 1 Step 2
+'     bOut.Push(Val("&H" & String.Mid(sData, I + 1, 2) & "&"))
+'   Next
+'   Return bOut
+'
+' End
+
+' Static Public Function StringToByteArray(sIn As String) As Byte[]
+'
+'   Return Byte[].FromString(sIn)
+'
+' End
+
+Static Public Function ByteArrayToString(bIn As Byte[], Optional iStart As Integer = 0, Optional iLength As Integer = -1) As String
+
+  Dim sRet As String
+  Dim fStream As File
+
+  fStream = Open String For Write
+  bIn.Write(fStream, iStart, iLength)
+  sRet = Close #fStream
+  Return sRet
+
+End
+
+Static Public Function String8ToByteArray(sIn As String) As Byte[]
+
+  Return Byte[].FromString(sIn)
+
+End
+
+Static Public Function ByteArrayToString8(bIn As Byte[], Optional iStart As Integer = 0, Optional iLength As Integer = 0) As String
+
+  Return bIn.ToString(iStart, iLength)
+
+End

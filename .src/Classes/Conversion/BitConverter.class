@@ -1,0 +1,68 @@
+' Gambas class file
+
+Create Private
+
+Static Public Function GetBytes(inVal As Variant) As Byte[]
+
+  Dim inType As Integer
+  Dim bRet As Byte[]
+
+  inType = TypeOf(inVal)
+  Select Case inType
+    Case gb.Byte
+      Return inval
+    Case gb.Short
+      bRet = New Byte[2]
+      bRet[0] = (inVal And &FF)
+      bRet[1] = Lsr(CShort(inVal And &FF00&), 8)
+      Return bRet
+    Case gb.Integer
+      bRet = New Byte[4]
+      bRet[0] = (inVal And &FF)
+      bRet[1] = Lsr(CInt(inVal And &FF00&), 8)
+      bRet[2] = Lsr(CInt(inVal And &FF0000&), 16)
+      bRet[3] = Lsr(CInt(inVal And &FF000000&), 24)
+      Return bRet
+    Case gb.Long
+      bRet = New Byte[8]
+      bRet[0] = (inVal And &FF)
+      bRet[1] = Lsr(CLong(inVal And &FF00&), 8)
+      bRet[2] = Lsr(CLong(inVal And &FF0000&), 16)
+      bRet[3] = Lsr(CLong(inVal And &FF000000&), 24)
+      bRet[4] = Lsr(CLong(inVal And &FF00000000&), 32)
+      bRet[5] = Lsr(CLong(inVal And &FF0000000000&), 40)
+      bRet[6] = Lsr(CLong(inVal And &FF000000000000&), 48)
+      bRet[7] = Lsr(CLong(inVal And &FF00000000000000&), 56)
+      Return bRet
+  End Select
+
+End
+
+Static Public Function GetShort(inVal As Byte[], Optional startIndex As Integer = 0) As Short
+
+  Return Lsl(CShort(inVal[1 + startIndex]), 8) Or
+    inVal[startIndex]
+
+End
+
+Static Public Function GetInteger(inVal As Byte[], Optional startIndex As Integer = 0) As Integer
+
+  Return Lsl(CInt(inVal[3 + startIndex]), 24) Or
+    Lsl(CInt(inVal[2 + startIndex]), 16) Or
+    Lsl(CInt(inVal[1 + startIndex]), 8) Or
+    inVal[startIndex]
+
+End
+
+Static Public Function GetLong(inVal As Byte[], Optional startIndex As Integer = 0) As Long
+
+  Return Lsl(CLong(inVal[7 + startIndex]), 56) Or
+    Lsl(CLong(inVal[6 + startIndex]), 48) Or
+    Lsl(CLong(inVal[5 + startIndex]), 40) Or
+    Lsl(CLong(inVal[4 + startIndex]), 32) Or
+    Lsl(CLong(inVal[3 + startIndex]), 24) Or
+    Lsl(CLong(inVal[2 + startIndex]), 16) Or
+    Lsl(CLong(inVal[1 + startIndex]), 8) Or
+    inVal[startIndex]
+
+End

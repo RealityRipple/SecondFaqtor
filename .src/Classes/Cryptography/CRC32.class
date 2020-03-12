@@ -1,0 +1,40 @@
+' Gambas class file
+
+Create Private
+Static table As Integer[]
+
+Static Private Sub Init()
+
+  Dim poly, tmp, I, J As Integer
+
+  poly = &EDB88320&
+  table = New Integer[256]
+  tmp = 0
+  For I = 0 To table.Length - 1
+    tmp = I
+    For J = 0 To 7
+      If (tmp And 1) = 1 Then
+        tmp = Lsr(tmp, 1) Xor poly
+      Else
+        tmp = Lsr(tmp, 1)
+      Endif
+    Next
+    table[I] = tmp
+  Next
+
+End
+
+Static Public Function ComputeChecksum(bytes As Byte[]) As Integer
+
+  Dim index As Byte
+  Dim crc, I As Integer
+
+  If Not table Then Init
+  crc = &FFFFFFFF&
+  For I = 0 To bytes.Length - 1
+    index = CByte((crc And &HFF) Xor bytes[I])
+    crc = CInt(Lsr(crc, 8) Xor table[index])
+  Next
+  Return Not crc
+
+End

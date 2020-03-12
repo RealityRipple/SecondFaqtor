@@ -1,0 +1,879 @@
+' Gambas class file
+
+Create Private
+Static Private passkey As New Byte[]
+Static Private cryptoSeq As String = "|PADDING" & Application.Title & "PADDING|"
+Static Property Read RequiresLogin As Boolean
+
+Static Private Function SettingsPath() As String
+
+  If Not Exist(Desktop.ConfigDir) Then Mkdir Desktop.ConfigDir
+  Return Desktop.ConfigDir &/ Replace(Application.Title, " ", "-") & ".json"
+
+End
+
+Static Private Function ReadPreference_ByteArray(sProperty As String, Optional bDefault As Byte[] = Null) As Byte[]
+
+  Dim sPath, sJSON As String
+  Dim jEl As Variant
+  Dim bRet As Byte[]
+  Dim jSettings As JSONCollection
+
+  sPath = SettingsPath()
+  If Not Exist(sPath) Then Return bDefault
+  sJSON = File.Load(sPath)
+  jSettings = JSON.Decode(sJSON, True)
+  sJSON = Null
+  For Each jEl In jSettings
+    If jSettings.Key = sProperty And If TypeOf(jEl) = gb.String Then
+      bRet = Base32.Base32StringToByteArray(jEl)
+      If Not bRet Then Return bDefault
+      Return bRet
+    Endif
+  Next
+  Return bDefault
+Catch
+  Return bDefault
+
+End
+
+Static Private Sub WritePreference_ByteArray(sProperty As String, bValue As Byte[])
+
+  Dim sPath, sJSON, sValue As String
+  Dim jEl As Variant
+  Dim jSettings As JSONCollection
+
+  sPath = SettingsPath()
+  If Exist(sPath) Then
+    sJSON = File.Load(sPath)
+    jSettings = JSON.Decode(sJSON, True)
+    sJSON = Null
+  Else
+    jSettings = New JSONCollection
+  Endif
+  sValue = Base32.ByteArrayToBase32String(bValue, False)
+  For Each jEl In jSettings
+    If jSettings.Key = sProperty And If TypeOf(jEl) = gb.String Then
+      If bValue Then
+        jSettings[jSettings.Key] = sValue
+      Else
+        jSettings.Remove(jSettings.Key)
+      Endif
+      File.Save(sPath, JSON.Encode(jSettings))
+      Return
+    Endif
+  Next
+  If Not bValue Then Return
+  jSettings.Add(sValue, sProperty)
+  File.Save(sPath, JSON.Encode(jSettings))
+Catch
+  Return
+
+End
+
+Static Private Function ReadProfileCount() As Integer
+
+  Dim foundSecret As Boolean
+  Dim pCount As Integer
+  Dim sPath, sJSON As String
+  Dim jEl, jProf, jVal As Variant
+  Dim jSettings As JSONCollection
+
+  sPath = SettingsPath()
+
+  If Not Exist(sPath) Then Return 0
+  sJSON = File.Load(sPath)
+  jSettings = JSON.Decode(sJSON, True)
+  sJSON = Null
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    pCount = 0
+    For Each jProf In jEl
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      foundSecret = False
+      For Each jVal In jProf
+        If Not jProf.Key = "Secret" Then Continue
+        If Not TypeOf(jProf) = gb.string Then Continue
+        foundSecret = True
+        Break
+      Next
+      If foundSecret Then pCount += 1
+    Next
+    Return pCount
+  Next
+  Return 0
+Catch
+  Return 0
+
+End
+
+Static Private Function ReadProfileNames() As String[]
+
+  Dim foundSecret As Boolean
+  Dim sPath, sJSON As String
+  Dim jEl, jProf, jVal As Variant
+  Dim jSettings As JSONCollection
+  Dim sRet As String[]
+
+  sPath = SettingsPath()
+  If Not Exist(sPath) Then Return Null
+  sJSON = File.Load(sPath)
+  jSettings = JSON.Decode(sJSON, True)
+
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    sRet = New String[]
+    For Each jProf In jEl
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      foundSecret = False
+      For Each jVal In jProf
+        If Not jProf.Key = "Secret" Then Continue
+        If Not TypeOf(jProf) = gb.string Then Continue
+        foundSecret = True
+        Break
+      Next
+      If foundSecret Then sRet.Push(jEl.Key)
+    Next
+    Return sRet
+  Next
+  Return Null
+Catch
+  Return Null
+
+End
+
+Static Private Function ReadProfile_String(sProfile As String, sProperty As String, Optional sDefault As String = Null) As String
+
+  Dim sPath, sJSON As String
+  Dim jEl, jProf, jVal As Variant
+  Dim jSettings As JSONCollection
+
+  sPath = SettingsPath()
+  If Not Exist(sPath) Then Return sDefault
+  sJSON = File.Load(sPath)
+  jSettings = JSON.Decode(sJSON, True)
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    For Each jProf In jEl
+      If Not (jEl.Key = sProfile) Then Continue
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      For Each jVal In jProf
+        If Not (jProf.Key = sProperty) Then Continue
+        If Not (TypeOf(jVal) = gb.string) Then Continue
+        Return jVal
+      Next
+    Next
+  Next
+  Return sDefault
+Catch
+  Return sDefault
+
+End
+
+Static Private Sub WriteProfile_String(sProfile As String, sProperty As String, sValue As String)
+
+  Dim sPath, sJSON As String
+  Dim jEl, jProf, jVal As Variant
+  Dim jSettings, jProfile, jValue As JSONCollection
+
+  sPath = SettingsPath()
+  If Exist(sPath) Then
+    sJSON = File.Load(sPath)
+    jSettings = JSON.Decode(sJSON, True)
+    sJSON = Null
+  Else
+    jSettings = New JSONCollection
+  Endif
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    For Each jProf In jEl
+      If Not (jEl.Key = sProfile) Then Continue
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      For Each jVal In jProf
+        If Not (jProf.Key = sProperty) Then Continue
+        If Not (TypeOf(jVal) = gb.string) Then Continue
+        If sValue Then
+          jSettings["Profiles"][sProfile][sProperty] = sValue
+        Else
+          jSettings["Profiles"][sProfile].Remove(sProperty)
+        Endif
+        File.Save(sPath, JSON.Encode(jSettings))
+        Return
+      Next
+      If Not sValue Then Return
+      jSettings["Profiles"][sProfile].Add(sValue, sProperty)
+      File.Save(sPath, JSON.Encode(jSettings))
+      Return
+    Next
+    If Not sValue Then Return
+    jValue = New JSONCollection
+    jValue.Add(sValue, sProperty)
+    jSettings["Profiles"].Add(jValue, sProfile)
+    File.Save(sPath, JSON.Encode(jSettings))
+    Return
+  Next
+  If Not sValue Then Return
+  jValue = New JSONCollection
+  jValue.Add(sValue, sProperty)
+  jProfile = New JSONCollection
+  jProfile.Add(jValue, sProfile)
+  jSettings.Add(jProfile, "Profiles")
+  File.Save(sPath, JSON.Encode(jSettings))
+
+Catch
+  Return
+
+End
+
+Static Private Function ReadProfile_ByteArray(sProfile As String, sProperty As String, Optional bDefault As Byte[] = Null) As Byte[]
+
+  Dim sPath, sJSON As String
+  Dim jEl, jProf, jVal As Variant
+  Dim bRet As Byte[]
+  Dim jSettings As JSONCollection
+
+  sPath = SettingsPath()
+  If Not Exist(sPath) Then Return bDefault
+  sJSON = File.Load(sPath)
+  jSettings = JSON.Decode(sJSON, True)
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    For Each jProf In jEl
+      If Not (jEl.Key = sProfile) Then Continue
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      For Each jVal In jProf
+        If Not (jProf.Key = sProperty) Then Continue
+        If Not (TypeOf(jVal) = gb.string) Then Continue
+        bRet = Base32.Base32StringToByteArray(jVal)
+        If Not bRet Then Return bDefault
+        Return bRet
+      Next
+    Next
+  Next
+  Return bDefault
+Catch
+  Return bDefault
+
+End
+
+Static Private Sub WriteProfile_ByteArray(sProfile As String, sProperty As String, bValue As Byte[])
+
+  Dim sPath, sJSON, sValue As String
+  Dim jEl, jProf, jVal As Variant
+  Dim jSettings, jProfile, jValue As JSONCollection
+
+  sPath = SettingsPath()
+  sValue = Base32.ByteArrayToBase32String(bValue, False)
+  If Exist(sPath) Then
+    sJSON = File.Load(sPath)
+    jSettings = JSON.Decode(sJSON, True)
+    sJSON = Null
+  Else
+    jSettings = New JSONCollection
+  Endif
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    For Each jProf In jEl
+      If Not (jEl.Key = sProfile) Then Continue
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      For Each jVal In jProf
+        If Not (jProf.Key = sProperty) Then Continue
+        If Not (TypeOf(jVal) = gb.string) Then Continue
+        If sValue Then
+          jSettings["Profiles"][sProfile][sProperty] = sValue
+        Else
+          jSettings["Profiles"][sProfile].Remove(sProperty)
+        Endif
+        File.Save(sPath, JSON.Encode(jSettings))
+        Return
+      Next
+      If Not sValue Then Return
+      jSettings["Profiles"][sProfile].Add(sValue, sProperty)
+      File.Save(sPath, JSON.Encode(jSettings))
+      Return
+    Next
+    If Not sValue Then Return
+    jValue = New JSONCollection
+    jValue.Add(sValue, sProperty)
+    jSettings["Profiles"].Add(jValue, sProfile)
+    File.Save(sPath, JSON.Encode(jSettings))
+    Return
+  Next
+  If Not sValue Then Return
+  jValue = New JSONCollection
+  jValue.Add(sValue, sProperty)
+  jProfile = New JSONCollection
+  jProfile.Add(jValue, sProfile)
+  jSettings.Add(jProfile, "Profiles")
+  File.Save(sPath, JSON.Encode(jSettings))
+
+Catch
+  Return
+
+End
+
+Static Private Function DeleteProfile(sProfile As String) As Boolean
+
+  Dim sPath, sJSON As String
+  Dim jEl, jProf As Variant
+  Dim jSettings As JSONCollection
+
+  sPath = SettingsPath()
+  If Exist(sPath) Then
+    sJSON = File.Load(sPath)
+    jSettings = JSON.Decode(sJSON, True)
+    sJSON = Null
+  Else
+    jSettings = New JSONCollection
+  Endif
+  For Each jEl In jSettings
+    If Not (jSettings.Key = "Profiles") Then Continue
+    If Not (TypeOf(jEl) = gb.Object) Then Continue
+    For Each jProf In jEl
+      If Not (jEl.Key = sProfile) Then Continue
+      If Not (TypeOf(jProf) = gb.Object) Then Continue
+      jSettings["Profiles"].Remove(sProfile)
+      File.Save(sPath, JSON.Encode(jSettings))
+      Return True
+    Next
+  Next
+  Return False
+Catch
+  Return False
+
+End
+
+Static Private Function RequiresLogin_Read() As Boolean
+
+  Dim decrypTest As Byte[]
+
+  decrypTest = ReadPreference_ByteArray("A")
+  If Not decrypTest Then Return False
+  If decrypTest.Length = 0 Then Return False
+  If decrypTest.Length = 32 Then Return False
+  Return True
+
+End
+
+Static Public Function Login(pass As String) As Boolean
+
+  Dim I As Integer
+  Dim iterations As Long
+  Dim c, salt As Byte[]
+
+  c = ReadPreference_ByteArray("C")
+  If Not c Then Return False
+  If Not (c.Length = 24) Then Return False
+  salt = New Byte[16]
+  For I = 0 To 15
+    salt[I] = c[I]
+  Next
+  iterations = BitConverter.GetLong(c, 16)
+  passkey = cPBKDF2.Rfc2898DeriveBytes(pass, salt, iterations, 32, HashAlgorithm.SHA512)
+  Return Me.LoggedIn
+
+End
+
+Static Public Function ChangePassword(newPass As String) As Boolean
+
+  Dim I As Integer
+  Dim iterations As Long
+  Dim sProfSel, sRow, sSecret, sOrig As String
+  Dim bIV, bKey, bSalt, bIter, bPBKDFParams As Byte[]
+  Dim sProfile, sProfiles As String[]
+  Dim profData As Collection
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return False
+  sProfiles = Me.GetProfileNames
+  sProfSel = LastSelectedProfileName_Read()
+  profData = New Collection
+  If sProfiles Then
+    For Each sRow In sProfiles
+      sSecret = ProfileSecretR(sRow)
+      sOrig = ProfileDefaultNameR(sRow)
+      profData.Add([sSecret, sOrig], sRow)
+      sSecret = Null
+      sOrig = Null
+    Next
+  Endif
+  bIV = New Byte[Cipher["AES-256-CTR"].IvLength]
+  cOpenSSL.GetRandomBytes(ByRef bIV)
+  If Not newPass Then
+    bKey = New Byte[Cipher["AES-256-CTR"].KeyLength]
+    cOpenSSL.GetRandomBytes(ByRef bKey)
+    WritePreference_ByteArray("A", bKey)
+    WritePreference_ByteArray("B", bIV)
+    WritePreference_ByteArray("C", Null)
+  Else
+    bSalt = New Byte[16]
+    cOpenSSL.GetRandomBytes(ByRef bSalt)
+    iterations = cPBKDF2.BestIterationFor(HashAlgorithm.SHA512)
+    passkey = cPBKDF2.Rfc2898DeriveBytes(newPass, bSalt, iterations, 32, HashAlgorithm.SHA512)
+    bPBKDFParams = New Byte[24]
+    For I = 0 To 15
+      bPBKDFParams[I] = bSalt[I]
+    Next
+    bIter = BitConverter.GetBytes(iterations)
+    For I = 0 To 7
+      bPBKDFParams[16 + i] = bIter[I]
+    Next
+    WritePreference_ByteArray("C", bPBKDFParams)
+    WritePreference_ByteArray("B", bIV)
+    WritePreference_ByteArray("A", EncrypText(Application.Title, True))
+  Endif
+  For Each sProfile In profData
+    sSecret = sProfile[0]
+    sOrig = sProfile[1]
+    If sSecret Then ProfileSecretW(profData.Key, sSecret)
+    If sOrig Then ProfileDefaultNameW(profData.Key, sOrig)
+    sSecret = Null
+    sOrig = Null
+  Next
+  LastSelectedProfileName_Write(sProfSel)
+  Return True
+
+End
+
+Static Property Read LoggedIn As Boolean
+
+Static Private Function LoggedIn_Read() As Boolean
+
+  Dim outTest As String
+  Dim decrypTest As Byte[]
+
+  If Not passkey Then Return False
+  If passkey.Length = 0 Then Return False
+  decrypTest = ReadPreference_ByteArray("A")
+  If Not decrypTest Then Return False
+  If decrypTest.Length = 0 Then Return False
+  outTest = DecrypText(decrypTest, True)
+  Return outTest = Application.Title
+
+End
+
+Static Property Read Count As Integer
+
+Static Private Function Count_Read() As Integer
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return 0
+  Return ReadProfileCount()
+
+End
+
+Static Property LastSelectedProfileName As String
+
+Static Private Function LastSelectedProfileName_Read() As String
+
+  Dim bDefault As Byte[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return Null
+  bDefault = ReadPreference_ByteArray("Selected")
+  If Not bDefault Then Return Null
+  Return DecrypText(bDefault)
+
+End
+
+Static Private Sub LastSelectedProfileName_Write(Value As String)
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return
+
+  WritePreference_ByteArray("Selected", EncrypText(Value))
+
+End
+
+Static Property Read GetProfileNames As String[]
+
+Static Private Function GetProfileNames_Read() As String[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return Null
+  Return ReadProfileNames()
+
+End
+
+Static Public Function ProfileDefaultNameR(Name As String) As String
+
+  Dim bDefault As Byte[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return Null
+  bDefault = ReadProfile_ByteArray(Name, "Default")
+  If Not bDefault Then Return Null
+  Return DecrypText(bDefault)
+
+End
+
+Static Public Sub ProfileDefaultNameW(Name As String, Value As String)
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return
+  WriteProfile_ByteArray(Name, "Default", EncrypText(Value))
+
+End
+
+Static Public Function ProfileSecretR(Name As String) As String
+
+  Dim bSecret As Byte[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return Null
+
+  bSecret = ReadProfile_ByteArray(Name, "Secret")
+  If Not bSecret Then Return Null
+  Return DeScrypt(bSecret)
+
+End
+
+Static Public Sub ProfileSecretW(Name As String, Value As String)
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return
+  WriteProfile_ByteArray(Name, "Secret", Secrypt(Value))
+
+End
+
+Static Public Function ProfileDigitsR(Name As String) As Byte
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return 0
+  Return CByte(ReadProfile_String(Name, "Size", "0"))
+
+End
+
+Static Public Sub ProfileDigitsW(Name As String, Value As Byte)
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return
+  WriteProfile_String(Name, "Size", value)
+
+End
+
+Static Public Function ProfileAlgorithmR(Name As String) As Byte
+
+  Dim sAlg As String
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return 0
+  sAlg = ReadProfile_String(name, "Algorithm", "SHA1")
+  Select Case String.UCase(sAlg)
+    Case "SHA256"
+      Return HashAlgorithm.SHA256
+    Case "SHA512"
+      Return HashAlgorithm.SHA512
+    Case Else
+      Return HashAlgorithm.SHA1
+  End Select
+
+End
+
+Static Public Sub ProfileAlgorithmW(Name As String, Value As Byte)
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return
+  Select Case value
+    Case HashAlgorithm.SHA1
+      WriteProfile_String(Name, "Algorithm", "SHA1")
+    Case HashAlgorithm.SHA256
+      WriteProfile_String(Name, "Algorithm", "SHA256")
+    Case HashAlgorithm.SHA512
+      WriteProfile_String(Name, "Algorithm", "SHA512")
+  End Select
+
+End
+
+Static Public Function ProfilePeriodR(Name As String) As Short
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return 30
+  Return CShort(ReadProfile_String(Name, "Period", "30"))
+
+End
+
+Static Public Sub ProfilePeriodW(Name As String, Value As Short)
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return
+  WriteProfile_String(Name, "Period", Value)
+
+End
+
+Static Public Function RenameProfile(OldName As String, NewName As String) As Boolean
+
+  Dim bDigits As Byte
+  Dim iPeriod As Short
+  Dim sDefault, sSecret, sAlgo As String
+  Dim bDefault, bSecret As Byte[]
+  Dim pNames As String[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return False
+  pNames = ReadProfileNames()
+  If Not pNames Then Return False
+  If Not pNames.Exist(OldName) Then Return False
+  If pNames.Exist(NewName) Then Return False
+
+  bDefault = ReadProfile_ByteArray(OldName, "Default")
+  If bDefault Then sDefault = DecrypText(bDefault)
+  bSecret = ReadProfile_ByteArray(OldName, "Secret")
+  If bSecret Then sSecret = DeScrypt(bSecret)
+  bDigits = CByte(ReadProfile_String(OldName, "Size", "6"))
+  sAlgo = ReadProfile_String(OldName, "Algorithm", "SHA1")
+  iPeriod = CShort(ReadProfile_String(OldName, "Period", "30"))
+  If String.LCase(OldName) = String.LCase(NewName) Then DeleteProfile(OldName)
+
+  If sDefault Then WriteProfile_ByteArray(NewName, "Default", EncrypText(sDefault))
+  If sSecret Then WriteProfile_ByteArray(NewName, "Secret", Secrypt(sSecret))
+  WriteProfile_String(NewName, "Size", bDigits)
+  WriteProfile_String(NewName, "Algorithm", sAlgo)
+  WriteProfile_String(NewName, "Period", iPeriod)
+  If Not (String.LCase(OldName) = String.LCase(NewName)) Then DeleteProfile(OldName)
+
+End
+
+Static Public Function AddProfile(Name As String, Secret As String, Optional Digits As Byte = 6, Optional Algorithm As Byte = HashAlgorithm.SHA1, Optional Period As Short = 30, Optional TrueName As String = Null) As Boolean
+
+  Dim pNames As String[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return False
+  pNames = ReadProfileNames()
+  If pNames And If pNames.Exist(Name) Then Return False
+  If Not TrueName Then TrueName = Name
+  If Secret Then WriteProfile_ByteArray(Name, "Default", EncrypText(TrueName))
+  WriteProfile_ByteArray(Name, "Secret", Secrypt(Secret))
+  WriteProfile_String(Name, "Size", Digits)
+  Select Case Algorithm
+    Case HashAlgorithm.SHA1
+      WriteProfile_String(Name, "Algorithm", "SHA1")
+    Case HashAlgorithm.SHA256
+      WriteProfile_String(Name, "Algorithm", "SHA256")
+    Case HashAlgorithm.SHA512
+      WriteProfile_String(Name, "Algorithm", "SHA512")
+  End Select
+  WriteProfile_String(Name, "Period", Period)
+  Return True
+
+End
+
+Static Public Function RemoveProfile(Name As String) As Boolean
+
+  Dim pNames As String[]
+
+  If Me.RequiresLogin And If Not Me.LoggedIn Then Return False
+  pNames = ReadProfileNames()
+  If Not pNames Then Return False
+  If Not pNames.Exist(Name) Then Return False
+  Return DeleteProfile(Name)
+
+End
+
+Static Private Function Secrypt(Secret As String) As Byte[]
+
+  Dim prefix, sKey, sIV As String
+  Dim bKey, bIV, bRet As Byte[]
+  Dim sRet As CipherText
+
+  If Not Secret Then
+    bRet = New Byte[4]
+    Return bRet
+  Endif
+  prefix = cryptoRandom() & cryptoSeq
+  If Me.RequiresLogin Then
+    If Not Me.LoggedIn Then Return New Byte[]
+    bKey = passkey
+  Else
+    bKey = ReadPreference_ByteArray("A")
+  Endif
+  bIV = ReadPreference_ByteArray("B")
+  If Not bKey Then
+    bKey = New Byte[32]
+    cOpenSSL.GetRandomBytes(ByRef bKey)
+    WritePreference_ByteArray("A", bKey)
+  Endif
+  If Not (bKey.Length = 32) Then
+    bKey = New Byte[32]
+    cOpenSSL.GetRandomBytes(ByRef bKey)
+    WritePreference_ByteArray("A", bKey)
+  Endif
+  If Not bIV Then
+    bIV = New Byte[16]
+    cOpenSSL.GetRandomBytes(ByRef bIV)
+    WritePreference_ByteArray("B", bIV)
+  Endif
+  If Not (bIV.Length = 16) Then
+    bIV = New Byte[16]
+    cOpenSSL.GetRandomBytes(ByRef bIV)
+    WritePreference_ByteArray("B", bIV)
+  Endif
+  sKey = ByteString.ByteArrayToString(bKey)
+  sIV = ByteString.ByteArrayToString(bIV)
+  sRet = Cipher["AES-256-CBC"].Encrypt(prefix & ByteString.ByteArrayToString(Base32.Base32StringToByteArray(String.UCase(Secret))), sKey, sIV)
+  Return Byte[].FromString(sRet.Cipher)
+
+End
+
+Static Private Function DeScrypt(Encrypted As Byte[]) As String
+
+  Dim seqFound As Boolean
+  Dim I, iRead, iTest As Integer
+  Dim sKey, sIV, sDecrypt As String
+  Dim bKey, bIV, bOut As Byte[]
+  Dim sCiph As CipherText
+
+  If Not Encrypted Then Return "Missing"
+  If Encrypted.Length = 0 Then Return "Missing"
+  If Encrypted.Length = 4 And
+      Encrypted[0] = 0 And
+      Encrypted[1] = 0 And
+      Encrypted[2] = 0 And
+      Encrypted[3] = 0 Then
+    Return Null
+  Endif
+  If Me.RequiresLogin Then
+    If Not Me.LoggedIn Then Return "Not Logged In"
+    bKey = passkey
+  Else
+    bKey = ReadPreference_ByteArray("A")
+  Endif
+  bIV = ReadPreference_ByteArray("B")
+  If Not bKey Then Return "Missing Encryption Keys"
+  If Not (bKey.Length = 32) Then Return "Missing Encryption Keys"
+  If Not bIV Then Return "Missing Encryption Keys"
+  If Not (bIV.Length = 16) Then Return "Missing Encryption Keys"
+  sKey = ByteString.ByteArrayToString(bKey)
+  sIV = ByteString.ByteArrayToString(bIV)
+  sCiph = New CipherText(ByteString.ByteArrayToString(Encrypted), sKey, sIV)
+  Try sDecrypt = Cipher["AES-256-CBC"].Decrypt(sCiph)
+  If Error Then Return "Failed to Decrypt"
+  bOut = New Byte[]
+  seqFound = False
+  For I = 0 To Len(sDecrypt) - 1
+    iRead = Asc(sDecrypt, I + 1)
+    If Not seqFound Then
+      For iTest = 0 To Len(cryptoSeq) - 1
+        If Not (iRead = Asc(cryptoSeq, iTest + 1)) Then Break
+        If iTest = Len(cryptoSeq) - 1 Then
+          seqFound = True
+          Break
+        Endif
+        I += 1
+        iRead = Asc(sDecrypt, I + 1)
+      Next
+      If seqFound Then Continue
+    Endif
+    If seqFound Then bOut.Push(iRead)
+  Next
+  If bOut.Length = 0 Then Return Null
+  Return Base32.ByteArrayToBase32String(bOut)
+Catch
+  Return "Failed to Decrypt"
+
+End
+
+Static Private Function EncrypText(Text As String, Optional SpecialLogin As Boolean = False) As Byte[]
+
+  Dim prefix, sKey, sIV As String
+  Dim bKey, bIV As Byte[]
+  Dim sRet As CipherText
+
+  prefix = cryptoRandom() & cryptoSeq
+  If SpecialLogin Then
+    bKey = passkey
+  Else If Me.RequiresLogin Then
+    If Not Me.LoggedIn Then Return New Byte[]
+    bKey = passkey
+  Else
+    bKey = ReadPreference_ByteArray("A")
+  Endif
+  bIV = ReadPreference_ByteArray("B")
+  If Not bKey Then
+    bKey = New Byte[32]
+    cOpenSSL.GetRandomBytes(ByRef bKey)
+    WritePreference_ByteArray("A", bKey)
+  Endif
+  If Not (bKey.Length = 32) Then
+    bKey = New Byte[32]
+    cOpenSSL.GetRandomBytes(ByRef bKey)
+    WritePreference_ByteArray("A", bKey)
+  Endif
+  If Not bIV Then
+    bIV = New Byte[16]
+    cOpenSSL.GetRandomBytes(ByRef bIV)
+    WritePreference_ByteArray("B", bIV)
+  Endif
+  If Not (bIV.Length = 16) Then
+    bIV = New Byte[16]
+    cOpenSSL.GetRandomBytes(ByRef bIV)
+    WritePreference_ByteArray("B", bIV)
+  Endif
+  sKey = ByteString.ByteArrayToString(bKey)
+  sIV = ByteString.ByteArrayToString(bIV)
+  sRet = Cipher["AES-256-CBC"].Encrypt(prefix & Text, sKey, sIV)
+  Return Byte[].FromString(sRet.Cipher)
+
+End
+
+Static Private Function DecrypText(Encrypted As Byte[], Optional SpecialLogin As Boolean = False) As String
+
+  Dim seqFound As Boolean
+  Dim I, iRead, iTest As Integer
+  Dim sKey, sIV, sDecrypt As String
+  Dim bKey, bIV, bOut As Byte[]
+  Dim sCiph As CipherText
+
+  If Not Encrypted Then Return "Missing"
+  If Encrypted.Length = 0 Then Return "Missing"
+
+  If SpecialLogin Then
+    bKey = passkey
+  Else If Me.RequiresLogin Then
+    If Not Me.LoggedIn Then Return "Not Logged In"
+    bKey = passkey
+  Else
+    bKey = ReadPreference_ByteArray("A")
+  Endif
+  bIV = ReadPreference_ByteArray("B")
+  If Not bKey Then Return "Missing Encryption Keys"
+  If Not (bKey.Length = 32) Then Return "Missing Encryption Keys"
+  If Not bIV Then Return "Missing Encryption Keys"
+  If Not (bIV.Length = 16) Then Return "Missing Encryption Keys"
+  sKey = ByteString.ByteArrayToString(bKey)
+  sIV = ByteString.ByteArrayToString(bIV)
+  sCiph = New CipherText(ByteString.ByteArrayToString(Encrypted), sKey, sIV)
+  Try sDecrypt = Cipher["AES-256-CBC"].Decrypt(sCiph)
+  If Error Then Return "Failed to Decrypt"
+  bOut = New Byte[]
+  seqFound = False
+  For I = 0 To Len(sDecrypt) - 1
+    iRead = Asc(sDecrypt, I + 1)
+    If Not seqFound Then
+      For iTest = 0 To Len(cryptoSeq) - 1
+        If Not (iRead = Asc(cryptoSeq, iTest + 1)) Then Break
+        If iTest = Len(cryptoSeq) - 1 Then
+          seqFound = True
+          Break
+        Endif
+        I += 1
+        iRead = Asc(sDecrypt, I + 1)
+      Next
+      If seqFound Then Continue
+    Endif
+    If seqFound Then bOut.Push(iRead)
+  Next
+  If bOut.Length = 0 Then Return Null
+  Return ByteString.ByteArrayToString(bOut)
+Catch
+  Return "Failed to Decrypt"
+
+End
+
+Static Private Function cryptoRandom() As String
+
+  Dim I As Integer
+  Dim sRnd As String
+  Dim bRnd As Byte[]
+
+  sRnd = Null
+  For I = 0 To 63
+    bRnd = New Byte[1]
+    Do
+      cOpenSSL.GetRandomBytes(ByRef bRnd)
+    Loop Until (bRnd[0] >= &H30 And bRnd[0] < &H39) Or (bRnd[0] >= &H41 And bRnd[0] <= &H5A) Or (bRnd[0] >= &H61 And bRnd[0] <= &H7A)
+    sRnd &= Chr$(bRnd[0])
+  Next
+  Return sRnd
+
+End

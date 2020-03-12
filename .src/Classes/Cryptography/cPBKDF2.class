@@ -1,0 +1,99 @@
+' Gambas class file
+
+Create Private
+#If Gambas < "3.15.0"
+Library "libssl"
+Private Extern PKCS5_PBKDF2_HMAC(Pass As String, PassLen As Integer, Salt As Byte[], SaltLen As Integer, Iterations As Integer, Digest As String, KeyLen As Integer, Out As Pointer) As Integer
+Private Extern EVP_sha1() As String
+Private Extern EVP_sha256() As String
+Private Extern EVP_sha384() As String
+Private Extern EVP_sha512() As String
+#Endif
+Static Private mBestIter As New Long[4]
+
+Static Public Function Rfc2898DeriveBytes(password As String, salt As Byte[], iterationCount As Long, keySize As Integer, hash As Byte) As Byte[]
+
+  #If Gambas >= "3.15.0"
+  Dim hClass, sSalt, sOut As String
+  Select Case hash
+    Case HashAlgorithm.SHA256
+      hClass = "sha256"
+    Case HashAlgorithm.SHA384
+      hClass = "sha384"
+    Case HashAlgorithm.SHA512
+      hClass = "sha512"
+    Case Else
+      hClass = "sha1"
+  End Select
+  sSalt = ByteString.ByteArrayToString(salt)
+  sOut = Pbkdf2(password, sSalt, iterationCount, keySize, hClass)
+  If Not sOut Then Return Null
+  Return ByteString.String8ToByteArray(sOut)
+  #Else
+  Dim iResult As Integer
+  Dim hClass, sOut As String
+  Dim pOut As Pointer
+  Dim hMem As Stream
+  Select Case hash
+    Case HashAlgorithm.SHA256
+      hClass = EVP_sha256()
+    Case HashAlgorithm.SHA384
+      hClass = EVP_sha384()
+    Case HashAlgorithm.SHA512
+      hClass = EVP_sha512()
+    Case Else
+      hClass = EVP_sha1()
+  End Select
+  pOut = Alloc(keySize)
+  iResult = PKCS5_PBKDF2_HMAC(password, Len(password), salt, salt.Length, iterationCount, hClass, keySize, pOut)
+  If iResult = 0 Then
+    Free(pOut)
+    Return Null
+  Endif
+  hMem = Memory pOut For Read
+  sOut = Read #hMem, keySize
+  Close #hMem
+  Free(pOut)
+  Return ByteString.String8ToByteArray(sOut)
+  #Endif
+
+End
+
+Static Public Function BestIterationFor(hash As Byte) As Long
+
+  If mBestIter[hash - 1] = 0 Then mBestIter[hash - 1] = GetBestIterationFor(hash)
+  Return mBestIter[hash - 1]
+
+End
+
+Static Private Function GetBestIterationFor(hash As Byte) As Long
+
+  Dim derSize As Integer
+  Dim iterations, expectedIterations As Long
+  Dim sTime, eTime As Float
+  Dim pass As String
+  Dim salt, derB As Byte[]
+
+  pass = "CorrectHorseBatteryStaple"
+  salt = New Byte[16]
+  cOpenSSL.GetRandomBytes(ByRef salt)
+  iterations = 10000
+  expectedIterations = 0
+  derSize = 32 * 2 + 2
+  Do
+    sTime = Timer
+    derB = Me.Rfc2898DeriveBytes(pass, salt, iterations, derSize, hash)
+    eTime = Timer - sTime
+    derB.Clear
+    If eTime > 1.0 Then Return iterations
+    If expectedIterations = 0 Then
+      expectedIterations = iterations / eTime
+      expectedIterations = Ceil(expectedIterations / 10000) * 10000
+      iterations = expectedIterations
+    Else
+      iterations = iterations + 10000
+    Endif
+  Loop
+  Return 0
+
+End

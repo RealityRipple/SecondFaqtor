@@ -1,0 +1,167 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,59,41)
+  Text = ("SecondFaqtor Authenticator Profile Configuration")
+  Icon = Picture["icon.png"]
+  Resizable = False
+  Arrangement = Arrange.Fill
+  AutoResize = True
+  { pnlConfig VBox
+    MoveScaled(0,0,59,41)
+    AutoResize = True
+    { pnlProfileManager HBox
+      MoveScaled(2,1,55,4)
+      AutoResize = True
+      Spacing = True
+      { cmbProfiles ComboBox
+        MoveScaled(0,0,25,4)
+        Expand = True
+        ReadOnly = True
+      }
+      { cmdAdd Button
+        MoveScaled(26,0,13,4)
+        AutoResize = True
+        Text = ("Add Profile")
+      }
+      { cmdRemove Button
+        MoveScaled(40,0,15,4)
+        AutoResize = True
+        Text = ("Remove Profile")
+      }
+    }
+    { pnlProfileSettings VBox
+      MoveScaled(1,6,57,29)
+      AutoResize = True
+      { pnlName HBox
+        MoveScaled(1,1,55,6)
+        AutoResize = True
+        Spacing = True
+        Margin = True
+        { lblName Label
+          MoveScaled(1,1,8,4)
+          Text = ("Service:")
+        }
+        { txtName TextBox
+          MoveScaled(9,1,39,4)
+          Expand = True
+        }
+        { cmdDefaultService Button
+          MoveScaled(49,1,5,4)
+          Visible = False
+          Text = ("●")
+        }
+      }
+      { pnlSecret HBox
+        MoveScaled(1,8,55,6)
+        AutoResize = True
+        Spacing = True
+        Margin = True
+        { lblSecret Label
+          MoveScaled(1,1,8,4)
+          Text = ("Secret:")
+        }
+        { txtSecret ButtonBox
+          MoveScaled(9,1,45,4)
+          Expand = True
+        }
+      }
+      { pnlNumbers HBox
+        MoveScaled(1,15,55,6)
+        AutoResize = True
+        Spacing = True
+        Margin = True
+        { lblSize Label
+          MoveScaled(1,1,8,4)
+          Text = ("Digits:")
+        }
+        { txtSize SpinBox
+          MoveScaled(9,1,6,4)
+          MinValue = 6
+          MaxValue = 8
+          Step = 2
+          Value = 6
+          Alignment = Align.Right
+        }
+        { spDigits1 Spring
+          MoveScaled(16,2,3,2)
+        }
+        { spDigits2 Spring
+          MoveScaled(20,2,3,2)
+        }
+        { spDigits3 Spring
+          MoveScaled(24,2,3,2)
+        }
+        { spDigits4 Spring
+          MoveScaled(28,2,3,2)
+        }
+        { lblPeriod Label
+          MoveScaled(33,1,8,4)
+          Text = ("Period:")
+        }
+        { txtPeriod SpinBox
+          MoveScaled(42,1,8,4)
+          MinValue = 1
+          MaxValue = 86400
+          Value = 30
+          Alignment = Align.Right
+        }
+        { spPeriod Spring
+          MoveScaled(51,2,3,2)
+        }
+      }
+      { pnlAlgoButtons HBox
+        MoveScaled(1,22,55,6)
+        AutoResize = True
+        Spacing = True
+        Margin = True
+        { lblAlgorithm Label
+          MoveScaled(1,1,8,4)
+          Text = ("Hash:")
+        }
+        { cmbAlgorithm ComboBox
+          MoveScaled(9,1,19,4)
+          Expand = True
+          ReadOnly = True
+          List = [("SHA1"), ("SHA256"), ("SHA512")]
+        }
+        { cmdSaveProfile Button
+          MoveScaled(29,1,12,4)
+          AutoResize = True
+          Text = ("Save")
+        }
+        { cmdResetProfile Button
+          MoveScaled(42,1,12,4)
+          AutoResize = True
+          Text = ("Reset")
+        }
+      }
+      { Separator1 Separator
+        MoveScaled(1,27,55,3)
+      }
+    }
+    { pnlButtons HBox
+      MoveScaled(2,36,55,4)
+      AutoResize = True
+      Spacing = True
+      { cmdPassword Button
+        MoveScaled(0,0,19,4)
+        AutoResize = True
+        Text = ("Change Password")
+      }
+      { spButtons Spring
+        MoveScaled(21,1,6,2)
+      }
+      { cmdBackup Button
+        MoveScaled(29,0,17,4)
+        AutoResize = True
+        Text = ("Backup Profiles")
+      }
+      { cmdClose Button
+        MoveScaled(47,0,8,4)
+        AutoResize = True
+        Text = ("Close")
+      }
+    }
+  }
+}

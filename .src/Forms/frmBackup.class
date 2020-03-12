@@ -1,0 +1,443 @@
+' Gambas class file
+
+Private GoodIterations As Long
+Private ImportedFiles As ZipFile[]
+
+Public Sub Form_Open()
+
+  Dim sName As String
+  Dim sProfiles As String[]
+  Dim daImportF As DrawingArea
+  Dim cmdImportF As ToolButton
+
+  If Me.Height < 560 Then Me.Height = 560
+  lstExportProfiles.Clear()
+  lstImportProfiles.Clear()
+  lstExportProfiles.Tag = "WORKING"
+  chkExportAll.Tag = "WORKING"
+  sProfiles = cSettings.GetProfileNames
+  If sProfiles Then
+    For Each sName In sProfiles
+      If cSettings.ProfileSecretR(sName) Then lstExportProfiles.Add(sName)
+    Next
+  Endif
+  lstExportProfiles.CheckAll
+  chkExportAll.Value = CheckBox.True
+  lstExportProfiles.Tag = Null
+  chkExportAll.Tag = Null
+
+  daImportF = txtImportFile.Children[0]
+  cmdImportF = daImportF.Children[1]
+  cmdImportF.Border = True
+
+  txtImportFile.Picture = Picture["icon:/small/open"]
+
+End
+
+Public Sub Form_Show()
+
+  cmdExport.Enabled = False
+  tmrShown.Enabled = True
+
+End
+
+Public Sub tmrShown_Timer()
+
+  Dim iIterations As Long
+
+  tmrShown.Enabled = False
+
+  Me.Mouse = Mouse.Wait
+  Wait
+  iIterations = cPBKDF2.BestIterationFor(HashAlgorithm.SHA512)
+  If iIterations < 4000 Then iIterations = 4000
+  iIterations = Ceil(iIterations / 1000) * 1000
+  GoodIterations = iIterations
+  lblExportAdvanced.Text = ("By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.") & "<br><br>" &
+    ("For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:") & "<br>" &
+    "&nbsp;&bull; " & Subst(("&1 instead of &2"), "HMAC-SHA-512", "HMAC-SHA-1") & "<br>" &
+    "&nbsp;&bull; " & Subst(("An iteration count of &1 instead of 1,000 rounds"), Format$(GoodIterations, "#,###")) & "<br><br>" &
+    ("These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup.")
+  cmdExport.Enabled = True
+  Me.Mouse = Mouse.Default
+
+End
+
+Public Sub lstExportProfiles_Check()
+
+  Dim allChecked As Boolean
+  Dim allUnchecked As Boolean
+  Dim I As Integer
+
+  If chkExportAll.Tag Then Return
+  lstExportProfiles.Tag = "WORKING"
+  allChecked = True
+  allUnchecked = True
+  For I = 0 To lstExportProfiles.Count - 1
+    If lstExportProfiles[I].Checked Then
+      allUnchecked = False
+    Else
+      allChecked = False
+    Endif
+  Next
+  If allChecked Then
+    chkExportAll.Tristate = False
+    chkExportAll.Value = CheckBox.True
+  Else If allUnchecked Then
+    chkExportAll.Tristate = False
+    chkExportAll.Value = CheckBox.False
+  Else
+    chkExportAll.Tristate = True
+    chkExportAll.Value = CheckBox.None
+  Endif
+  lstExportProfiles.Tag = Null
+
+End
+
+Public Sub chkExportAll_Click()
+
+  If lstExportProfiles.Tag Then Return
+  chkExportAll.Tag = "WORKING"
+  chkExportAll.Tristate = False
+  If chkExportAll.Value = CheckBox.True Then
+    lstExportProfiles.CheckAll
+  Else If chkExportAll.Value = CheckBox.False Then
+    lstExportProfiles.UncheckAll
+  Endif
+  chkExportAll.Tag = Null
+
+End
+
+Public Sub cmdExport_Click()
+
+  Dim I, idx As Integer
+  Dim expTime As Date
+  Dim sName, sAlg, sData, sPath, sPassword As String
+  Dim fZip As File
+  Dim bData, bSave As Byte[]
+  Dim iItems As Integer[]
+  Dim sNames As String[]
+  Dim zExport As ZIP
+  Dim pass As FrmPassEntry
+
+  zExport = New ZIP(AESStrength.AES256)
+  iItems = New Integer[]
+  For I = 0 To lstExportProfiles.Count - 1
+    If lstExportProfiles[I].Checked Then iItems.Add(I)
+  Next
+  If iItems.Length = 0 Then Return
+  expTime = Now
+  idx = 0
+  sNames = cSettings.GetProfileNames
+  For I = 0 To iItems.Length - 1
+    sName = sNames[iItems[I]]
+    sAlg = "SHA1"
+    Select Case cSettings.ProfileAlgorithmR(sName)
+      Case HashAlgorithm.SHA256
+        sAlg = "SHA256"
+      Case HashAlgorithm.SHA512
+        sAlg = "SHA512"
+    End Select
+    sData = "{\n" &
+      " \"name\": \"" & sName & "\",\n" &
+      " \"secret\": \"" & cSettings.ProfileSecretR(sName) & "\",\n" &
+      " \"alg\": \"" & sAlg & "\",\n" &
+      " \"digits\": \"" & cSettings.ProfileDigitsR(sName) & "\",\n" &
+      " \"period\": \"" & cSettings.ProfilePeriodR(sName) & "\"\n" &
+      "}\n"
+    bData = Byte[].FromString(sData)
+    zExport.AddData(idx & ".json", bData, expTime)
+    sName = Null
+    sAlg = Null
+    sData = Null
+    bData = Null
+    idx += 1
+  Next
+  If idx = 0 Then Return
+  sPath = Null
+  Dialog.Filter = ["*.zip", "ZIP File"]
+  If idx = 1 Then
+    Dialog.Title = Subst(("Export &1 Profile..."), Application.Title)
+  Else
+    dialog.Title = Subst(("Export &1 &2 Profiles..."), idx, Application.Title)
+  Endif
+  Dialog.Path = User.Home &/ "SecondFactor-Backup-" & Year(expTime) & "-" & Format$(Month(expTime), "00") & "-" & Format$(Day(expTime), "00") & ".zip"
+  If Not Dialog.SaveFile() Then sPath = Dialog.Path
+  If Not sPath Then Return
+  sPassword = Null
+  pass = New FrmPassEntry
+  pass.Prepare_Export
+  If Not pass.ShowDialog() Then Return
+  If Not pass.Password Then Return
+  sPassword = pass.Password
+  pass.Delete
+  cmdExport.Enabled = False
+  Me.Mouse = Mouse.Wait
+  Wait
+  If chkExportAdvanced.Value = CheckBox.True Then
+    bSave = zExport.Encrypt(sPassword, Subst(("This Zip file's encryption is enhanced with &1 and &2 rounds."), "HMAC-SHA-512", Format$(GoodIterations, "#,###")) & "\n" & ("Your archive application may have trouble opening this file.") & "\n" & Subst(("See &1 for details."), "<https://gist.github.com/RealityRipple/a32f2192501f4775aff36ce143ac6894>"), HashAlgorithm.SHA512, GoodIterations)
+  Else
+    bSave = zExport.Encrypt(sPassword)
+  Endif
+  fZip = Open sPath For Write Create
+  Write #fZip, ByteString.ByteArrayToString(bSave)
+  Close #fZip
+  Message.Title = ("Backup Completed")
+  Message.Info(Subst(("Your Backup has been saved to \"&1\". Please keep this backup safe!"), sPath))
+  cmdExport.Enabled = True
+  Me.Mouse = Mouse.Default
+
+End
+
+Public Sub chkImportAll_Click()
+
+  If lstImportProfiles.Tag Then Return
+  chkImportAll.Tag = "WORKING"
+  chkExportAll.Tristate = False
+  If chkImportAll.value = CheckBox.True
+    lstImportProfiles.CheckAll
+  Else
+    lstImportProfiles.UncheckAll
+  Endif
+  chkImportAll.Tag = Null
+
+End
+
+Public Sub lstImportProfiles_Check()
+
+  Dim allChecked As Boolean
+  Dim allUnchecked As Boolean
+  Dim I As Integer
+
+  If chkImportAll.Tag Then Return
+  lstImportProfiles.Tag = "WORKING"
+  allChecked = True
+  allUnchecked = True
+  For I = 0 To lstImportProfiles.Count - 1
+    If lstImportProfiles[I].Checked Then
+      allUnchecked = False
+    Else
+      allChecked = False
+    Endif
+  Next
+  If allChecked Then
+    chkImportAll.Tristate = False
+    chkImportAll.Value = CheckBox.True
+  Else If allUnchecked Then
+    chkImportAll.Tristate = False
+    chkImportAll.Value = CheckBox.False
+  Else
+    chkImportAll.Tristate = True
+    chkImportAll.Value = CheckBox.None
+  Endif
+  lstImportProfiles.Tag = Null
+
+End
+
+Public Sub txtImportFile_Click()
+
+  Dialog.Filter = ["*.zip", "ZIP Files"]
+  Dialog.Title = Subst(("Select &1 Profiles Backup File..."), Application.Title)
+  Dialog.Path = User.Home
+  If Not Dialog.OpenFile() Then txtImportFile.text = Dialog.Path
+
+End
+
+Public Sub txtImportFile_Change()
+
+  Dim allChecked, allUnchecked, found, secretFound As Boolean
+  Dim I As Integer
+  Dim sPath, sPassword, sName As String
+  Dim bImport As Byte[]
+  Dim pass As FrmPassEntry
+  Dim sProfiles As String[]
+  Dim fStream As File
+  Dim jReader As JSONReader
+  Dim jEl As JSElement
+  Dim sFile As ZipFile
+
+  txtImportFile.ClearButton = txtImportFile.Text
+  ImportedFiles = New ZipFiles[]
+  sPath = txtImportFile.Text
+  If Not sPath Then Return
+  If Not Exist(sPath) Then Return
+  bImport = Byte[].FromString(File.Load(sPath))
+  sPassword = Null
+  pass = New FrmPassEntry
+  pass.Prepare_Import()
+  If Not pass.ShowDialog() Then Return
+  If Not pass.Password Then Return
+  sPassword = pass.Password
+  pass.Delete
+  cmdImport.Enabled = False
+  txtImportFile.Enabled = False
+  Me.Mouse = Mouse.Wait
+  lstImportProfiles.Clear()
+  Wait
+  ImportedFiles = ZIP.Decrypt(bImport, sPassword)
+  lstImportProfiles.Tag = "WORKING"
+  chkImportAll.Tag = "WORKING"
+  allChecked = True
+  allUnchecked = True
+  sProfiles = cSettings.GetProfileNames
+  For Each sFile In ImportedFiles
+    fStream = Open String ByteString.ByteArrayToString(sFile.Data) For Read
+    jReader = New JSONReader(fStream, False)
+    Close fStream
+    sName = Null
+    secretFound = False
+    For Each jEl In jReader.Serial[0].SubElements
+      If jEl.Key = "name" Then sName = jEl.Value
+      If jEl.Key = "secret" And If jEl.Value Then secretFound = True
+    Next
+    If Not secretFound Then Continue
+    If Not sName Then Continue
+    found = False
+    For I = 0 To sProfiles.Length - 1
+      If String.LCase(sProfiles[I]) = String.LCase(sName) Then
+        found = True
+        Break
+      Endif
+    Next
+    If found Then
+      allChecked = False
+      lstImportProfiles.Add(sName)
+      lstImportProfiles[lstImportProfiles.Count - 1].Checked = CheckBox.False
+    Else
+      allUnchecked = False
+      lstImportProfiles.Add(sName)
+      lstImportProfiles[lstImportProfiles.Count - 1].Checked = CheckBox.True
+    Endif
+  Next
+  If allChecked Then
+    chkImportAll.Tristate = False
+    chkImportAll.Value = CheckBox.True
+  Else If allUnchecked Then
+    chkImportAll.Tristate = False
+    chkImportAll.Value = CheckBox.False
+  Else
+    chkImportAll.Tristate = True
+    chkImportAll.Value = CheckBox.None
+  Endif
+  lstImportProfiles.Tag = Null
+  chkImportAll.Tag = Null
+  cmdImport.Enabled = True
+  txtImportFile.Enabled = True
+  Me.Mouse = Mouse.Default
+
+End
+
+Public Sub cmdImport_Click()
+
+  Dim bFound, allOK As Boolean
+  Dim hAlg, iDigits As Byte
+  Dim iPeriod As Short
+  Dim I, J, didCount As Integer
+  Dim sName, sNames, sSecret, sAlg, sOldName As String
+  Dim iItems As Integer[]
+  Dim sProfiles As String[]
+  Dim fStream As File
+  Dim jReader As JSONReader
+  Dim jEl As JSElement
+
+  iItems = New Integer[]
+  For I = 0 To lstImportProfiles.Count - 1
+    If lstImportProfiles[I].Checked Then iItems.Add(I)
+  Next
+  If iItems.Count = 0 Then Return
+  sProfiles = cSettings.GetProfileNames
+  If iItems.Count = 1 Then
+    sName = lstImportProfiles.List[iItems[0]]
+    bFound = False
+    For I = 0 To sProfiles.Length - 1
+      If String.LCase(sProfiles[I]) = String.LCase(sName) Then
+        bFound = True
+        Break
+      Endif
+    Next
+    Message.Title = ("Import Profile?")
+    If bFound Then
+      If Message.Question(Subst(("Are you sure you want to import the \"&1\" profile?"), sName) & "\n" & ("The existing profile with the same name will be overwritten."), ("&Yes"), ("&No")) = 2 Then Return
+    Else
+      If Message.Question(Subst(("Are you sure you want to import the \"&1\" profile?"), sName), ("&Yes"), ("&No")) = 2 Then Return
+    Endif
+  Else
+    sNames = Null
+    For I = 0 To iItems.Count - 1
+      sName = lstImportProfiles.List[iItems[I]]
+      bFound = False
+      For J = 0 To sProfiles.Length - 1
+        If String.LCase(sProfiles[J]) = String.LCase(sName) Then
+          bFound = True
+          Break
+        Endif
+      Next
+      sNames &= "\n" & sName
+      If bFound Then sNames &= "*"
+    Next
+    Message.Title = ("Import Profiles?")
+    If String.InStr(sNames, "*") > 0 Then
+      If Message.Question(Subst(("Are you sure you want to import the following &1 profiles?"), iItems.Length) & "\n" & ("Any existing profiles with the same names (marked with an asterisk below) will be overwritten.") & "\n" & sNames, ("&Yes"), ("&No")) = 2 Then Return
+    Else
+      If Message.Question(Subst(("Are you sure you want to import the following &1 profiles?"), iItems.Length) & "\n" & sNames, ("&Yes"), ("&No")) = 2 Then Return
+    Endif
+  Endif
+  allOK = True
+  didCount = 0
+  For I = 0 To iItems.Count - 1
+    sName = Null
+    sSecret = Null
+    sAlg = Null
+    iDigits = 0
+    iPeriod = 0
+    fStream = Open String ByteString.ByteArrayToString(ImportedFiles[iItems[I]].Data) For Read
+    jReader = New JSONReader(fStream, False)
+    Close #fStream
+    For Each jEl In jReader.Serial[0].SubElements
+      If jEl.Key = "name" Then sName = jEl.Value
+      If jEl.Key = "secret" Then sSecret = jEl.Value
+      If jEl.Key = "alg" Then sAlg = jEl.Value
+      If jEl.Key = "digits" Then iDigits = jEl.Value
+      If jEl.Key = "period" Then iPeriod = jEl.Value
+    Next
+    If (Not sName) Or (Not sSecret) Or (Not sAlg) Or (iDigits = 0) Or (iPeriod = 0) Then Continue
+    If iDigits < 6 Or iDigits > 8 Then Continue
+    sOldName = Null
+    For J = 0 To sProfiles.Length - 1
+      If String.LCase(sProfiles[J]) = String.LCase(sName) Then
+        sOldName = sProfiles[J]
+        Break
+      Endif
+    Next
+    If sOldName Then
+      If Not cSettings.RemoveProfile(sOldName) Then
+        allOK = False
+        Break
+      Endif
+    Endif
+    hAlg = HashAlgorithm.SHA1
+    Select Case String.UCase(sAlg)
+      Case "SHA256", "SHA-256"
+        hAlg = HashAlgorithm.SHA256
+      Case "SHA512", "SHA-512"
+        hAlg = HashAlgorithm.SHA512
+    End Select
+    If Not cSettings.AddProfile(sName, sSecret, iDigits, hAlg, iPeriod) Then
+      allOK = False
+      Break
+    Endif
+    didCount += 1
+  Next
+  If allOK And didCount = iItems.Count Then
+    Message.Title = ("Import Completed")
+    If didCount = 1 Then
+      Message.Info(("Your backup has been restored! ") & ("One profile has been added."))
+    Else
+      Message.Info(("Your backup has been restored! ") & Subst(("&1 profiles have been added."), didCount))
+    Endif
+  Else
+    Message.Title = ("Import Failed")
+    Message.Error(("There was an error saving a profile!"))
+  Endif
+
+End

@@ -1,0 +1,20 @@
+' Gambas class file
+
+Create Private
+
+Public Enum SHA1 = 1, SHA256 = 2, SHA384 = 3, SHA512 = 4
+
+Static Public Function ToString(alg As Byte) As String
+
+  Select Case alg
+    Case SHA1
+      Return "SHA1"
+    Case SHA256
+      Return "SHA256"
+    Case SHA384
+      Return "SHA384"
+    Case SHA512
+      Return "SHA512"
+  End Select
+
+End

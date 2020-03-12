@@ -1,0 +1,21 @@
+' Gambas class file
+
+Create Private
+Static Private BeepList As String[] = [
+  "/usr/share/sounds/freedesktop/stereo/bell.oga",
+  "/usr/share/sounds/sound-icons/prompt"
+]
+
+Static Public Sub Beep()
+
+  Dim I As Integer
+
+  For I = 0 To BeepList.Length - 1
+    If Exist(BeepList[I], True) Then
+      Sound.Load(BeepList[I]).Play
+      Return
+    Endif
+
+  Next
+
+End

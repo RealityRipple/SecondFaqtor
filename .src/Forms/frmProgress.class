@@ -1,0 +1,41 @@
+' Gambas class file
+
+Property Progress As Float
+
+Private Function Progress_Read() As Float
+
+  Return pbProgress.Value
+
+End
+
+Private Sub Progress_Write(Value As Float)
+
+  pbProgress.Value = Value
+
+End
+
+Public Sub Prepare_Encrypt()
+
+  Me.Text = Subst(("Encrypting your &1 Profiles"), Application.Title)
+  lblProgress.Text = ("Your Profiles are being encrypted. Please wait...")
+  lblProgress.Adjust
+  If lblProgress.Height < 40 Then lblProgress.Height = 40
+  Me.Progress = 0
+
+End
+
+Public Sub Prepare_Decrypt()
+
+  Me.Text = Subst(("Decrypting your &1 Profiles"), Application.Title)
+  lblProgress.Text = ("Your Backup File is being decrypted. Please wait...")
+  lblProgress.Adjust
+  If lblProgress.Height < 40 Then lblProgress.Height = 40
+  Me.Progress = 1
+
+End
+
+Public Sub Form_Close()
+
+  Stop Event
+
+End
