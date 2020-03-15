@@ -1,0 +1,54 @@
+' Gambas class file
+
+Static Public Function Beautify(sIn As String) As String
+
+  Dim I, iIndent, idx As Integer
+  Dim bQuote, bEscaped As Boolean
+  Dim sJSON, sCh As String
+
+  For I = 0 To String.Len(sIn) - 1
+    sCh = String.Mid(sIn, I + 1, 1)
+    Select Case sCh
+      Case "{", "["
+        sJSON &= sCh
+        If Not bQuote Then
+          sJSON &= "\n"
+          iIndent += 1
+          sJSON &= Space(iIndent)
+        Endif
+      Case "}", "]"
+        If Not bQuote Then
+          sJSON &= "\n"
+          iIndent -= 1
+          sJSON &= Space(iIndent)
+        Endif
+        sJSON &= sCh
+      Case "\""
+        sJSON &= sCh
+        bEscaped = False
+        For idx = I - 1 To 0 Step -1
+          If String.Mid(sIn, idx + 1, 1) = "\\" Then
+            bEscaped = Not bEscaped
+          Else
+            Break
+          Endif
+        Next
+        If Not bEscaped Then bQuote = Not bQuote
+      Case ","
+        sJSON &= sCh
+        If Not bQuote Then
+          sJSON &= "\n"
+          sJSON &= Space(iIndent)
+        Endif
+      Case ":"
+        sJSON &= sCh
+        If Not bQuote Then sJSON &= " "
+      Case " "
+        If bQuote Then sJSON &= sCh
+      Default
+        sJSON &= sCh
+    End Select
+  Next
+  Return sJSON
+
+End

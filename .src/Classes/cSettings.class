@@ -59,15 +59,13 @@ Static Private Sub WritePreference_ByteArray(sProperty As String, bValue As Byte
       Else
         jSettings.Remove(jSettings.Key)
       Endif
-      File.Save(sPath, JSON.Encode(jSettings))
+      File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
       Return
     Endif
   Next
   If Not bValue Then Return
   jSettings.Add(sValue, sProperty)
-  File.Save(sPath, JSON.Encode(jSettings))
-Catch
-  Return
+  File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
 
 End
 
@@ -201,19 +199,19 @@ Static Private Sub WriteProfile_String(sProfile As String, sProperty As String, 
         Else
           jSettings["Profiles"][sProfile].Remove(sProperty)
         Endif
-        File.Save(sPath, JSON.Encode(jSettings))
+        File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
         Return
       Next
       If Not sValue Then Return
       jSettings["Profiles"][sProfile].Add(sValue, sProperty)
-      File.Save(sPath, JSON.Encode(jSettings))
+      File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
       Return
     Next
     If Not sValue Then Return
     jValue = New JSONCollection
     jValue.Add(sValue, sProperty)
     jSettings["Profiles"].Add(jValue, sProfile)
-    File.Save(sPath, JSON.Encode(jSettings))
+    File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
     Return
   Next
   If Not sValue Then Return
@@ -222,7 +220,7 @@ Static Private Sub WriteProfile_String(sProfile As String, sProperty As String, 
   jProfile = New JSONCollection
   jProfile.Add(jValue, sProfile)
   jSettings.Add(jProfile, "Profiles")
-  File.Save(sPath, JSON.Encode(jSettings))
+  File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
 
 Catch
   Return
@@ -290,19 +288,19 @@ Static Private Sub WriteProfile_ByteArray(sProfile As String, sProperty As Strin
         Else
           jSettings["Profiles"][sProfile].Remove(sProperty)
         Endif
-        File.Save(sPath, JSON.Encode(jSettings))
+        File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
         Return
       Next
       If Not sValue Then Return
       jSettings["Profiles"][sProfile].Add(sValue, sProperty)
-      File.Save(sPath, JSON.Encode(jSettings))
+      File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
       Return
     Next
     If Not sValue Then Return
     jValue = New JSONCollection
     jValue.Add(sValue, sProperty)
     jSettings["Profiles"].Add(jValue, sProfile)
-    File.Save(sPath, JSON.Encode(jSettings))
+    File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
     Return
   Next
   If Not sValue Then Return
@@ -311,7 +309,7 @@ Static Private Sub WriteProfile_ByteArray(sProfile As String, sProperty As Strin
   jProfile = New JSONCollection
   jProfile.Add(jValue, sProfile)
   jSettings.Add(jProfile, "Profiles")
-  File.Save(sPath, JSON.Encode(jSettings))
+  File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
 
 Catch
   Return
@@ -339,7 +337,7 @@ Static Private Function DeleteProfile(sProfile As String) As Boolean
       If Not (jEl.Key = sProfile) Then Continue
       If Not (TypeOf(jProf) = gb.Object) Then Continue
       jSettings["Profiles"].Remove(sProfile)
-      File.Save(sPath, JSON.Encode(jSettings))
+      File.Save(sPath, JSONCleaner.Beautify(JSON.Encode(jSettings)))
       Return True
     Next
   Next
