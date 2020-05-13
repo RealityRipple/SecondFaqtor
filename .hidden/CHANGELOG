@@ -1,6 +1,6 @@
-* Tue May 12 2020 Andrew Sachen <webmaster@RealityRipple.com> 1.0.1
+* Wed May 13 2020 Andrew Sachen <webmaster@RealityRipple.com> 1.0.1
 - Aligned future internal Pbkdf2 call with planned implementation
+- Fixed Past and Future box width scaling
 
 * Wed Mar 11 2020 Andrew Sachen <webmaster@RealityRipple.com> 1.0.0
 - Initial release
-

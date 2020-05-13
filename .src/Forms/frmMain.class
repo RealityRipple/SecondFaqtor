@@ -156,9 +156,9 @@ Private Sub LoadProfileData(ProfileName As String)
     proFail = True
   Endif
   If proFail Then
-    txtCodePast.Width = txtCodePast.Font.TextWidth("000 000")
+    pnlPast.Width = txtCodePast.Font.TextWidth("000 000") + (Desktop.Scale * 2)
     txtCode.Width = txtCode.Font.TextWidth("000 000") + (Desktop.Scale * 2)
-    txtCodeFuture.Width = txtCodeFuture.Font.TextWidth("000 000")
+    pnlFuture.Width = txtCodeFuture.Font.TextWidth("000 000") + (Desktop.Scale * 2)
     txtCodePast.Text = "000 000"
     txtCode.Text = "000 000"
     txtCodeFuture.Text = "000 000"
@@ -186,9 +186,9 @@ Private Sub LoadProfileData(ProfileName As String)
     sPresent = Left$(sPresent, 4) & " " & Mid$(sPresent, 5)
     sFuture = Left$(sFuture, 4) & " " & Mid$(sFuture, 5)
   Endif
-  txtCodePast.Width = txtCodePast.Font.TextWidth(sPast)
+  pnlPast.Width = txtCodePast.Font.TextWidth(sPast) + (Desktop.Scale * 2)
   txtCode.Width = txtCode.Font.TextWidth(sPresent) + (Desktop.Scale * 2)
-  txtCodeFuture.Width = txtCodeFuture.Font.TextWidth(sFuture)
+  pnlFuture.Width = txtCodeFuture.Font.TextWidth(sFuture) + (Desktop.Scale * 2)
   txtCodePast.Text = sPast
   txtCode.Text = sPresent
   txtCodeFuture.Text = sFuture

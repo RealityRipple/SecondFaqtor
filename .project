@@ -31,7 +31,7 @@ MimeTypes="x-scheme-handler/otpauth"
 ExtraDesktop="Exec=SecondFaqtor %u"
 RuntimeVersion="3.12"
 Packager=1
-Systems=ubuntu
+Systems=archlinux,autotools,debian,fedora,mageia,suse,slackware,ubuntu
 SameFiles=1
 Menus=archlinux:"Applications/System/Security"
 Categories=archlinux:"Network;Qt;Security;System;Utility"
