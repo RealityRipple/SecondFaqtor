@@ -26,7 +26,7 @@ Static Public Function Rfc2898DeriveBytes(password As String, salt As Byte[], it
       hClass = "sha1"
   End Select
   sSalt = ByteString.ByteArrayToString(salt)
-  sOut = Pbkdf2(password, sSalt, iterationCount, keySize, hClass)
+  sOut = OpenSSL.Pbkdf2(password, sSalt, iterationCount, keySize, hClass)
   If Not sOut Then Return Null
   Return ByteString.String8ToByteArray(sOut)
   #Else

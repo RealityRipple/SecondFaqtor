@@ -2,7 +2,7 @@
 Title=SecondFaqtor
 Startup=mMain
 Icon=icon.png
-Version=1.0.0
+Version=1.0.1
 Component=gb.image
 Component=gb.gui.qt
 Component=gb.form
@@ -25,13 +25,13 @@ VendorPrefix=rrs
 Address=webmaster@RealityRipple.com
 Url=realityripple.com
 License=Public Domain
-PackageName=secondfaqtor-1.0.0
+PackageName=secondfaqtor-1.0.1
 CreateEachDirectory=1
 MimeTypes="x-scheme-handler/otpauth"
 ExtraDesktop="Exec=SecondFaqtor %u"
 RuntimeVersion="3.12"
 Packager=1
-Systems=archlinux,autotools,debian,fedora,mageia,suse,slackware,ubuntu
+Systems=ubuntu
 SameFiles=1
 Menus=archlinux:"Applications/System/Security"
 Categories=archlinux:"Network;Qt;Security;System;Utility"

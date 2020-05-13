@@ -2,6 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SecondFaqtor 3.14.90\n"
+"POT-Creation-Date: 2020-04-25 04:23 UTC\n"
 "PO-Revision-Date: 2020-02-20 22:12 UTC\n"
 "Last-Translator: Andrew Sachen <webmaster@RealityRipple.com>\n"
 "Language: en_US\n"
@@ -14,118 +15,119 @@ msgid "SecondFaqtor"
 msgstr "SecondFaqtor"
 
 #: .project:2
-msgid "Two-Factor Authenticator for Linux"
+#, fuzzy
+msgid "Two-Factor Authenticator"
 msgstr "Two-Factor Authenticator for Linux"
 
 #: ZIP.class:296
 msgid "Unable to decrypt this backup. Please double-check your password."
 msgstr "Unable to decrypt this backup. Please double-check your password."
 
-#: frmBackup.class:58
+#: frmBackup.class:60
 msgid "&1 instead of &2"
 msgstr "&1 instead of &2"
 
-#: frmBackup.class:58
+#: frmBackup.class:60
 msgid "An iteration count of &1 instead of 1,000 rounds"
 msgstr "An iteration count of &1 instead of 1,000 rounds"
 
-#: frmBackup.class:58
+#: frmBackup.class:60
 msgid "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools."
 msgstr "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools."
 
-#: frmBackup.class:58
+#: frmBackup.class:60
 msgid "For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:"
 msgstr "For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:"
 
-#: frmBackup.class:58
+#: frmBackup.class:60
 msgid "These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
 msgstr "These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
 
-#: frmBackup.class:158
+#: frmBackup.class:160
 msgid "Export &1 Profile..."
 msgstr "Export &1 Profile..."
 
-#: frmBackup.class:160
+#: frmBackup.class:162
 msgid "Export &1 &2 Profiles..."
 msgstr "Export &1 &2 Profiles..."
 
-#: frmBackup.class:176
+#: frmBackup.class:178
 msgid "See &1 for details."
 msgstr "See &1 for details."
 
-#: frmBackup.class:176
+#: frmBackup.class:178
 msgid "This Zip file's encryption is enhanced with &1 and &2 rounds."
 msgstr "This Zip file's encryption is enhanced with &1 and &2 rounds."
 
-#: frmBackup.class:176
+#: frmBackup.class:178
 msgid "Your archive application may have trouble opening this file."
 msgstr "Your archive application may have trouble opening this file."
 
-#: frmBackup.class:183
+#: frmBackup.class:185
 msgid "Backup Completed"
 msgstr "Backup Completed"
 
-#: frmBackup.class:184
+#: frmBackup.class:186
 msgid "Your Backup has been saved to \"&1\". Please keep this backup safe!"
 msgstr "Your Backup has been saved to \"&1\". Please keep this backup safe!"
 
-#: frmBackup.class:238
+#: frmBackup.class:240
 msgid "Select &1 Profiles Backup File..."
 msgstr "Select &1 Profiles Backup File..."
 
-#: frmBackup.class:356
+#: frmBackup.class:358
 msgid "Import Profile?"
 msgstr "Import Profile?"
 
-#: frmBackup.class:358 frmMain.class:397 frmProfiles.class:74
+#: frmBackup.class:360 frmMain.class:397 frmProfiles.class:74
 msgid "&No"
 msgstr "&No"
 
-#: frmBackup.class:358 frmMain.class:397 frmProfiles.class:74
+#: frmBackup.class:360 frmMain.class:397 frmProfiles.class:74
 msgid "&Yes"
 msgstr "&Yes"
 
-#: frmBackup.class:358
+#: frmBackup.class:360
 msgid "Are you sure you want to import the \"&1\" profile?"
 msgstr "Are you sure you want to import the \"&1\" profile?"
 
-#: frmBackup.class:358
+#: frmBackup.class:360
 msgid "The existing profile with the same name will be overwritten."
 msgstr "The existing profile with the same name will be overwritten."
 
-#: frmBackup.class:376
+#: frmBackup.class:378
 msgid "Import Profiles?"
 msgstr "Import Profiles?"
 
-#: frmBackup.class:378
+#: frmBackup.class:380
 msgid "Any existing profiles with the same names (marked with an asterisk below) will be overwritten."
 msgstr "Any existing profiles with the same names (marked with an asterisk below) will be overwritten."
 
-#: frmBackup.class:378
+#: frmBackup.class:380
 msgid "Are you sure you want to import the following &1 profiles?"
 msgstr "Are you sure you want to import the following &1 profiles?"
 
-#: frmBackup.class:430
+#: frmBackup.class:432
 msgid "Import Completed"
 msgstr "Import Completed"
 
-#: frmBackup.class:432
+#: frmBackup.class:434
 msgid "One profile has been added."
 msgstr "One profile has been added."
 
-#: frmBackup.class:432
+#: frmBackup.class:434
 msgid "Your backup has been restored! "
 msgstr "Your backup has been restored! "
 
-#: frmBackup.class:434
+#: frmBackup.class:436
 msgid "&1 profiles have been added."
 msgstr "&1 profiles have been added."
 
-#: frmBackup.class:437
+#: frmBackup.class:439
 msgid "Import Failed"
 msgstr "Import Failed"
 
-#: frmBackup.class:438
+#: frmBackup.class:440
 msgid "There was an error saving a profile!"
 msgstr "There was an error saving a profile!"
 
@@ -147,7 +149,12 @@ msgstr "Use Advanced Encryption"
 
 # gb-ignore
 #: frmBackup.form:96
-msgid "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.<br><br>\nFor advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:<br>\n&nbsp;&bull; HMAC-SHA-512 instead of HMAC-SHA-1<br>\n&nbsp;&bull; A dynamically set iteration count instead of 1,000 rounds<br><br>\nThese features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
+msgid ""
+"By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.<br><br>\n"
+"For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:<br>\n"
+"&nbsp;&bull; HMAC-SHA-512 instead of HMAC-SHA-1<br>\n"
+"&nbsp;&bull; A dynamically set iteration count instead of 1,000 rounds<br><br>\n"
+"These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
 msgstr ""
 
 #: frmBackup.form:111
@@ -384,7 +391,7 @@ msgstr "Discard Changes?"
 msgid "Are you sure you want to close without saving the changes to your Profile?"
 msgstr "Are you sure you want to close without saving the changes to your Profile?"
 
-#: frmProfiles.class:189
+#: frmProfiles.class:167
 msgid "Require Login"
 msgstr "Require Login"
 
@@ -472,7 +479,7 @@ msgstr "Reset"
 msgid "Change Password"
 msgstr "Change Password"
 
-#: frmProfiles.form:233 mMain.module:45
+#: frmProfiles.form:233 mMain.module:48
 msgid "Close"
 msgstr "Close"
 
@@ -496,23 +503,22 @@ msgstr "Your Backup File is being decrypted. Please wait..."
 msgid "Progress"
 msgstr "Progress"
 
-#: mMain.module:40
+#: mMain.module:43
 msgid "Retry"
 msgstr "Retry"
 
-#: mMain.module:40
+#: mMain.module:43
 msgid "The password you entered was incorrect."
 msgstr "The password you entered was incorrect."
 
-#: mMain.module:40
+#: mMain.module:43
 msgid "You have 2 attempts remaining."
 msgstr "You have 2 attempts remaining."
 
-#: mMain.module:42
+#: mMain.module:45
 msgid "You have 1 attempt remaining."
 msgstr "You have 1 attempt remaining."
 
-#: mMain.module:45
+#: mMain.module:48
 msgid "Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."
 msgstr "Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."
-
