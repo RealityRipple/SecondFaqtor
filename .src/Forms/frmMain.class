@@ -253,6 +253,12 @@ Public Sub cmdQR_Click()
   Me.Visible = False
   sQRs = cQR.ScanScreens()
   Me.Visible = True
+  If sQRs.Length = 1 Then
+    If sQRs[0] = "NOZ" Then
+      Message.Error(("QR image parsing requires zbar, but zbarimg could not be found.") & "\n\n" & ("Please install zbar for your distribution to use this feature."))
+      Return
+    Endif
+  Endif
   For Each sQR In sQRs
     ParseOTPURL(sQR, True)
   Next

@@ -10,6 +10,11 @@ Static Public Function ScanScreens() As String[]
   Dim sCodes, sLines As String[]
 
   sCodes = New String[]
+  Shell "whereis zbarimg 2>&1" To sRet
+  If sRet = "zbarimg:\n" Then
+    sCodes.Push("NOZ")
+    Return sCodes
+  Endif
   For Each scr In Screens
     pImage = Desktop.Screenshot(scr.X, scr.Y, scr.Width, scr.Height)
     sTmp = Temp$() & ".png"
