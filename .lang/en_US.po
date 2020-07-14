@@ -1,8 +1,8 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: SecondFaqtor 3.14.3\n"
-"PO-Revision-Date: 2020-05-24 02:30 UTC\n"
+"Project-Id-Version: SecondFaqtor 3.15.0\n"
+"PO-Revision-Date: 2020-07-14 08:29 UTC\n"
 "Last-Translator: Andrew Sachen <webmaster@RealityRipple.com>\n"
 "Language: en_US\n"
 "MIME-Version: 1.0\n"
