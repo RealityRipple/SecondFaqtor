@@ -1,69 +1,18 @@
 ' Gambas class file
 
 Create Private
-#If Gambas < "3.15.0"
-Library "libssl"
-Private Extern HMAC(Digest As String, Pass As String, KeyLen As Integer, Data As String, DataLen As Integer, Out As Pointer, KeyLen As Pointer) As Pointer
-Private Extern EVP_sha1() As String
-Private Extern EVP_sha256() As String
-Private Extern EVP_sha384() As String
-Private Extern EVP_sha512() As String
-#Endif
 
 Static Public Sub GetRandomBytes(ByRef bData As Byte[])
 
-  #If Gambas >= "3.14.0"
   Dim sRnd As String
+
   sRnd = OpenSSL.RandomBytes(bData.Length)
   bData = Byte[].FromString(sRnd)
-  #Else
-  Dim I As Integer
-  For I = 0 To bData.Length - 1
-    bData[I] = Rand(0, 255)
-  Next
-  #Endif
 
 End
 
 Static Public Function HMACSHA(Pass As String, Data As String, Method As String) As String
 
-  #If Gambas >= "3.15.0"
   Return HMac(Pass, Data, Method)
-  #Else
-  Dim pResult As Pointer
-  Dim hClass, sOut As String
-  Dim pOut As Pointer
-  Dim hMem As Stream
-  Dim pLen As Pointer
-  Dim iLen As Integer
-  Select Case Method
-    Case "sha256"
-      hClass = EVP_sha256()
-    Case "sha384"
-      hClass = EVP_sha384()
-    Case "sha512"
-      hClass = EVP_sha512()
-    Case Else
-      hClass = EVP_sha1()
-  End Select
-  pLen = Alloc(4)
-  pOut = Alloc(64)
-  pResult = HMAC(hClass, Pass, Len(Pass), Data, Len(Data), pOut, pLen)
-  If pLen = 0 Then
-    Free(pOut)
-    Return Null
-  Endif
-  iLen = Integer@(pLen)
-  Free(pLen)
-  If Not (pResult = pOut) Then
-    Free(pOut)
-    Return Null
-  Endif
-  hMem = Memory pOut For Read
-  sOut = Read #hMem, iLen
-  Close #hMem
-  Free(pOut)
-  Return sOut
-  #Endif
 
 End
