@@ -16,18 +16,15 @@ Private $aSel As New Integer[]
 '
 ' End
 '
-Public Sub SetSelection(aSel As Integer[])
+Public Sub Save() As Variant
 
-  $aSel = aSel
+  Return $aSel.Copy()
 
 End
 
-Public Sub Copy() As CheckedGridViewSelection
+Public Sub Restore(vSel As Variant)
 
-  Dim hSel As CheckedGridViewSelection = New CheckedGridViewSelection
-
-  hSel.SetSelection($aSel.Copy())
-  Return hSel
+  $aSel = vSel.Copy()
 
 End
 
@@ -98,7 +95,13 @@ End
 Public Sub UnSelectAll()
 
   $aSel.Clear
-  'Dump
+
+End
+
+Public Sub SelectAll(nRows As Integer)
+
+  UnSelectAll
+  Select(0, nRows)
 
 End
 

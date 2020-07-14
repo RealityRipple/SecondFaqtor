@@ -278,7 +278,7 @@ Public Sub CheckedGridView_Check()
 
 End
 
-Public Sub CheckedGridView_Click()
+Public Sub CheckedGridView_Change()
 
   Raise Click
 

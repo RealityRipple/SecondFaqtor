@@ -28,7 +28,13 @@ Private $cTextAlign As Collection
 Private $hSel As New CheckedGridViewSelection
 Private $hChk As New CheckedGridViewChecked
 
-Public Sub _GetSel() As CheckedGridViewSelection
+Public Sub _SetSelection(hSel As CheckedGridViewSelection)
+
+  $hSel = hSel
+
+End
+
+Public Sub _GetSelection() As CheckedGridViewSelection
 
   Return $hSel
 
@@ -362,9 +368,7 @@ Public Sub SelectAll()
 
   If hView.Mode <> Select.Multiple Then Return
 
-  $hSel.UnSelectAll
-  $hSel.Select(0, $nRows)
-  hView.Refresh
+  $hSel.SelectAll($nRows)
   hView._RaiseSelect
 
 End
@@ -394,15 +398,15 @@ Public Sub _IsSelected(iRow As Integer) As Boolean
 
 End
 
-Public Sub _SaveSelection() As CheckedGridViewSelection
+Public Sub _SaveSelection() As Variant
 
-  Return $hSel.Copy()
+  Return $hSel.Save()
 
 End
 
-Public Sub _RestoreSelection(hSel As CheckedGridViewSelection)
+Public Sub _RestoreSelection(vSel As Variant)
 
-  $hSel = hSel.Copy()
+  $hSel.Restore(vSel)
 
 End
 
