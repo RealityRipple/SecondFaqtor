@@ -1,13 +1,13 @@
 # ![](https://github.com/RealityRipple/SecondFaqtor/raw/master/key.png) SecondFaqtor
 Two-Factor authentication on your Linux PC, backed by AES-256 security.
 
-#### Version 1.0
+#### Version 1.1
 > Author: Andrew Sachen  
 > Created: February 2, 2020  
-> Updated: March 11, 2020
+> Updated: October 24, 2020
 
 Language: Gambas  
-Compiler: Gambas 3.12.2 - 3.14.90
+Compiler: Gambas 3.15.0+
 
 ##### Involved Technologies:
 * OTPAUTH
@@ -20,7 +20,7 @@ Compiler: Gambas 3.12.2 - 3.14.90
 * QR Code Capture and Decoding provided by [ZBar](http://zbar.sourceforge.net/)
 
 ## Building
-This application can be compiled using Gambas 3.12 or newer.
+This application can be compiled using Gambas 3.15 or newer.
 
 This application is *not* designed to support Cygwin compilation and may not work on Windows or OS X systems. There may also be internal code which supports Linux Qt UI-drawing methods specifically and may perform poorly or incorrectly on alternate Operating Systems.
 

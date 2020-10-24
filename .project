@@ -2,7 +2,7 @@
 Title=SecondFaqtor
 Startup=mMain
 Icon=icon.png
-Version=1.0.1
+Version=1.1.0
 Component=gb.image
 Component=gb.gui.qt
 Component=gb.form
@@ -25,7 +25,7 @@ VendorPrefix=rrs
 Address=webmaster@RealityRipple.com
 Url=realityripple.com
 License=Public Domain
-PackageName=secondfaqtor-1.0.1
+PackageName=secondfaqtor-1.1.0
 CreateEachDirectory=1
 MimeTypes="x-scheme-handler/otpauth"
 ExtraDesktop="Exec=SecondFaqtor %u"
