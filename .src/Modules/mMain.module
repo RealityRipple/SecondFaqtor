@@ -67,7 +67,8 @@ Private Function RegisterSingleInstance(Optional sImport As String = Null) As Bo
 
   sFind = DBus.Name
   If InStr(sFind, "-") > 0 Then sFind = Left$(sFind, RInStr(sFind, "-") - 1)
-  sNames = DBus["org.freedesktop.DBus"]["/"].ListNames()
+  sNames = DBus.Session.Applications
+  'sNames = DBus["org.freedesktop.DBus"]["/"].ListNames()
   sFound = Null
   For Each sName In sNames
     If Left$(sName, Len(sFind)) = sFind Then

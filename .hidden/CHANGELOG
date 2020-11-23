@@ -1,3 +1,6 @@
+* Wed Oct 28 2020 Andrew Sachen <webmaster@RealityRipple.com> 1.1.0
+- Simplified DBus methodology (for Fedora's sake)
+
 * Sat Oct 24 2020 Andrew Sachen <webmaster@RealityRipple.com> 1.1.0
 - Aligned internal Pbkdf2 call with implementation
 - Fixed Past and Future box width scaling
