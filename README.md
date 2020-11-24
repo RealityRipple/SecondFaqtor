@@ -40,4 +40,4 @@ For rationale and extra details, please read the above-linked addendum.
 You can grab the latest release from the [Official Web Site](https://realityripple.com/Software/Applications/SecondFactor/For-Linux/).
 
 ## License
-This is free and unencumbered software released into the public domain, supported by donations, not advertisements. If you find this software useful, [please support it](https://realityripple.com/donate.php?itm=SecondFactor)!
+This is free and unencumbered software released into the public domain, supported by donations, not advertisements. If you find this software useful, [please support it](https://realityripple.com/donate.php?itm=SecondFaqtor)!
