@@ -208,6 +208,17 @@ Public Sub cmbProfile_Click()
 
 End
 
+Public Sub txtCodePast_KeyPress()
+
+  If Key.Control Then
+    If Key.Code = Key["x"] Or If Key.Code = Key["c"] Or If Key.Code = Key.Insert Then
+      Clipboard.Copy(Replace(txtCodePast.text, " ", ""), "text/plain")
+      Stop Event
+    Endif
+  Endif
+
+End
+
 Public Sub txtCodePast_Menu()
 
   Stop Event
@@ -227,6 +238,17 @@ Public Sub txtCodePast_MouseUp()
 
 End
 
+Public Sub txtCode_KeyPress()
+
+  If Key.Control Then
+    If Key.Code = Key["x"] Or If Key.Code = Key["c"] Or If Key.Code = Key.Insert Then
+      Clipboard.Copy(Replace(txtCode.text, " ", ""), "text/plain")
+      Stop Event
+    Endif
+  Endif
+
+End
+
 Public Sub txtCode_Menu()
 
   Stop Event
@@ -243,6 +265,17 @@ Public Sub txtCode_MouseUp()
 
   txtCode.SelectAll
   If Mouse.Left Then Clipboard.Copy(Replace(txtCode.text, " ", ""), "text/plain")
+
+End
+
+Public Sub txtCodeFuture_KeyPress()
+
+  If Key.Control Then
+    If Key.Code = Key["x"] Or If Key.Code = Key["c"] Or If Key.Code = Key.Insert Then
+      Clipboard.Copy(Replace(txtCodeFuture.text, " ", ""), "text/plain")
+      Stop Event
+    Endif
+  Endif
 
 End
 
