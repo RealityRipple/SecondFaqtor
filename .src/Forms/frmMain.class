@@ -208,6 +208,12 @@ Public Sub cmbProfile_Click()
 
 End
 
+Public Sub txtCodePast_Menu()
+
+  Stop Event
+
+End
+
 Public Sub txtCodePast_MouseDown()
 
   txtCodePast.SelectAll
@@ -221,6 +227,12 @@ Public Sub txtCodePast_MouseUp()
 
 End
 
+Public Sub txtCode_Menu()
+
+  Stop Event
+
+End
+
 Public Sub txtCode_MouseDown()
 
   txtCode.SelectAll
@@ -231,6 +243,12 @@ Public Sub txtCode_MouseUp()
 
   txtCode.SelectAll
   If Mouse.Left Then Clipboard.Copy(Replace(txtCode.text, " ", ""), "text/plain")
+
+End
+
+Public Sub txtCodeFuture_Menu()
+
+  Stop Event
 
 End
 
