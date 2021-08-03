@@ -114,6 +114,7 @@ Private Sub UpdateProfileListing()
   Dim I As Integer
   Dim selText As String
   Dim sProfiles As String[]
+  Dim bFound As Boolean
 
   selText = Null
   If cmbProfile.Index > -1 Then selText = cmbProfile.Text
@@ -130,13 +131,15 @@ Private Sub UpdateProfileListing()
     If Not selText Then
       cmbProfile.Index = 0
     Else
+      bFound = False
       For I = 0 To cmbProfile.List.Count - 1
         If cmbProfile.List[I] = selText Then
+          bFound = True
           cmbProfile.Index = I
           Break
         Endif
       Next
-      If cmbProfile.Index = -1 Then cmbProfile.Index = 0
+      If Not bFound Then cmbProfile.Index = 0
     Endif
     'LoadProfileData(cmbProfile.Text)
   Endif
