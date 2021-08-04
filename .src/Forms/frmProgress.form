@@ -7,7 +7,7 @@
   Icon = Picture["icon:/huge/clock"]
   Resizable = False
   SkipTaskbar = True
-  Arrangement = Arrange.Fill
+  Arrangement = Arrange.Vertical
   AutoResize = True
   Spacing = True
   Margin = True
@@ -19,8 +19,8 @@
     { lblProgress Label
       MoveScaled(1,1,42,6)
       AutoResize = True
-      Text = ("Label1")
       Alignment = Align.TopLeft
+      Text = ("Label1")
     }
     { pbProgress ProgressBar
       MoveScaled(1,8,42,4)

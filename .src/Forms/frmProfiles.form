@@ -5,7 +5,7 @@
   Text = ("SecondFaqtor Authenticator Profile Configuration")
   Icon = Picture["icon.png"]
   Resizable = False
-  Arrangement = Arrange.Fill
+  Arrangement = Arrange.Vertical
   AutoResize = True
   { pnlConfig VBox
     MoveScaled(0,0,59,41)

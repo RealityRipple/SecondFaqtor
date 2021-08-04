@@ -6,7 +6,7 @@
   Icon = Picture["icon.png"]
   Persistent = True
   Resizable = False
-  Arrangement = Arrange.Fill
+  Arrangement = Arrange.Vertical
   AutoResize = True
   Spacing = True
   Margin = True
@@ -17,9 +17,9 @@
     Spacing = True
     { pctPassword PictureBox
       MoveScaled(1,1,4.5714,4.5714)
-      AutoResize = True
       Padding = 4
       Picture = Picture["key.png"]
+      AutoResize = True
     }
     { pnlInput VBox
       MoveScaled(7,1,41,14)
@@ -28,8 +28,8 @@
       { lblPassword Label
         MoveScaled(0,0,7,5.7143)
         AutoResize = True
-        Text = ("Label1")
         Alignment = Align.TopLeft
+        Text = ("Label1")
       }
       { txtPassword ButtonBox
         MoveScaled(0,5,15,4)

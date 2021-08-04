@@ -4,7 +4,7 @@
   MoveScaled(0,0,52.1429,64.2857)
   Text = ("Backup and Restore Profiles")
   Icon = Picture["icon.png"]
-  Arrangement = Arrange.Fill
+  Arrangement = Arrange.Vertical
   { VBox1 VBox
     MoveScaled(1,1,50,54)
     Expand = True
