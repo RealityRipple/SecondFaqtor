@@ -2,6 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SecondFaqtor 3.15.0\n"
+"POT-Creation-Date: 2021-08-04 02:30 UTC\n"
 "PO-Revision-Date: 2020-07-14 08:29 UTC\n"
 "Last-Translator: Andrew Sachen <webmaster@RealityRipple.com>\n"
 "Language: en_US\n"
@@ -77,11 +78,11 @@ msgstr "Select &1 Profiles Backup File..."
 msgid "Import Profile?"
 msgstr "Import Profile?"
 
-#: frmBackup.class:360 frmMain.class:403 frmProfiles.class:74
+#: frmBackup.class:360 frmMain.class:457 frmProfiles.class:74
 msgid "&No"
 msgstr "&No"
 
-#: frmBackup.class:360 frmMain.class:403 frmProfiles.class:74
+#: frmBackup.class:360 frmMain.class:457 frmProfiles.class:74
 msgid "&Yes"
 msgstr "&Yes"
 
@@ -147,126 +148,131 @@ msgstr "Use Advanced Encryption"
 
 # gb-ignore
 #: frmBackup.form:96
-msgid "By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.<br><br>\nFor advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:<br>\n&nbsp;&bull; HMAC-SHA-512 instead of HMAC-SHA-1<br>\n&nbsp;&bull; A dynamically set iteration count instead of 1,000 rounds<br><br>\nThese features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
+msgid ""
+"By default, your backups will be exported as an AES-256 encrypted ZIP file, which is compatible with many archive tools.<br><br>\n"
+"For advanced security, you may check the box above to create a non-standard AES-256 encrypted ZIP file that includes the following changes to the PBKDF2 implementation:<br>\n"
+"&nbsp;&bull; HMAC-SHA-512 instead of HMAC-SHA-1<br>\n"
+"&nbsp;&bull; A dynamically set iteration count instead of 1,000 rounds<br><br>\n"
+"These features should greatly improve the security of the backup, but you will not be able to use standard archive tools to view the backup."
 msgstr ""
 
-#: frmBackup.form:111
+#: frmBackup.form:112
 msgid "Export Selected Profiles"
 msgstr "Export Selected Profiles"
 
-#: frmBackup.form:120
+#: frmBackup.form:121
 msgid "Import Profiles"
 msgstr "Import Profiles"
 
-#: frmBackup.form:136
+#: frmBackup.form:137
 msgid "Backup File:"
 msgstr "Backup File:"
 
-#: frmBackup.form:177
+#: frmBackup.form:179
 msgid "Import Selected Profiles"
 msgstr "Import Selected Profiles"
 
-#: frmMain.class:258
+#: frmMain.class:312
 msgid "Please install zbar for your distribution to use this feature."
 msgstr "Please install zbar for your distribution to use this feature."
 
-#: frmMain.class:258
+#: frmMain.class:312
 msgid "QR image parsing requires zbar, but zbarimg could not be found."
 msgstr "QR image parsing requires zbar, but zbarimg could not be found."
 
-#: frmMain.class:282
+#: frmMain.class:336
 msgid "Unable to find any QR codes on the screen."
 msgstr "Unable to find any QR codes on the screen."
 
-#: frmMain.class:284
+#: frmMain.class:338
 msgid "The One-Time-Password Auth URL could not be read."
 msgstr "The One-Time-Password Auth URL could not be read."
 
-#: frmMain.class:289
+#: frmMain.class:343
 msgid "QR Code"
 msgstr "QR Code"
 
-#: frmMain.class:291
+#: frmMain.class:345
 msgid "URL"
 msgstr "URL"
 
-#: frmMain.class:296
+#: frmMain.class:350
 msgid "Found a QR code, but it doesn't contain a valid URL."
 msgstr "Found a QR code, but it doesn't contain a valid URL."
 
-#: frmMain.class:298
+#: frmMain.class:352
 msgid "The One-Time-Password Auth URL does not appear to be valid."
 msgstr "The One-Time-Password Auth URL does not appear to be valid."
 
-#: frmMain.class:304
+#: frmMain.class:358
 msgid "Found a QR code, but it doesn't contain One-Time-Password Auth information."
 msgstr "Found a QR code, but it doesn't contain One-Time-Password Auth information."
 
-#: frmMain.class:306
+#: frmMain.class:360
 msgid "The URL does not contain One-Time-Password Auth information."
 msgstr "The URL does not contain One-Time-Password Auth information."
 
-#: frmMain.class:312
+#: frmMain.class:366
 msgid "One-Time-Password Auth &1 is HMAC-based. Only Time-based authentication is supported at present."
 msgstr "One-Time-Password Auth &1 is HMAC-based. Only Time-based authentication is supported at present."
 
-#: frmMain.class:316
+#: frmMain.class:370
 msgid "One-Time-Password Auth &1 is not Time-based. Only Time-based authentication is supported at present."
 msgstr "One-Time-Password Auth &1 is not Time-based. Only Time-based authentication is supported at present."
 
-#: frmMain.class:325 frmProfiles.class:39
+#: frmMain.class:379 frmProfiles.class:39
 msgid "Untitled Account"
 msgstr "Untitled Account"
 
-#: frmMain.class:336
+#: frmMain.class:390
 msgid "Unable to read query variables in One-Time-Password Auth &1."
 msgstr "Unable to read query variables in One-Time-Password Auth &1."
 
-#: frmMain.class:350
+#: frmMain.class:404
 msgid "This profile uses the &1 hashing algorithm. SHA1, SHA256, and SHA512 are the only supported algorithms at present."
 msgstr "This profile uses the &1 hashing algorithm. SHA1, SHA256, and SHA512 are the only supported algorithms at present."
 
-#: frmMain.class:356
+#: frmMain.class:410
 msgid "This profile uses a &1 second interval. Intervals must be between 1 and 86400 seconds."
 msgstr "This profile uses a &1 second interval. Intervals must be between 1 and 86400 seconds."
 
-#: frmMain.class:362
+#: frmMain.class:416
 msgid "This profile uses &1 digits. Only six or eight digits are supported at present."
 msgstr "This profile uses &1 digits. Only six or eight digits are supported at present."
 
-#: frmMain.class:372
+#: frmMain.class:426
 msgid "No secret value was found in One-Time-Password Auth &1."
 msgstr "No secret value was found in One-Time-Password Auth &1."
 
-#: frmMain.class:398
+#: frmMain.class:452
 msgid "&1 Hashing algorithm"
 msgstr "&1 Hashing algorithm"
 
-#: frmMain.class:399
+#: frmMain.class:453
 msgid "&1 second Period"
 msgstr "&1 second Period"
 
-#: frmMain.class:400
+#: frmMain.class:454
 msgid "Secret: &1"
 msgstr "Secret: &1"
 
-#: frmMain.class:401
+#: frmMain.class:455
 msgid "Add New Profile?"
 msgstr "Add New Profile?"
 
-#: frmMain.class:403
+#: frmMain.class:457
 msgid "Detected new Authenticator Profile:"
 msgstr "Detected new Authenticator Profile:"
 
-#: frmMain.class:403
+#: frmMain.class:457
 msgid "Do you wish to add this profile to &1?"
 msgstr "Do you wish to add this profile to &1?"
 
-#: frmMain.class:405
+#: frmMain.class:459
 msgid "Received new Authenticator Profile:"
 msgstr "Received new Authenticator Profile:"
 
-#: frmMain.class:408
+#: frmMain.class:462
 msgid "Failed to create new profile."
 msgstr "Failed to create new profile."
 
@@ -523,4 +529,3 @@ msgstr "You have 1 attempt remaining."
 #: mMain.module:48
 msgid "Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."
 msgstr "Failed to import new Authenticator Profile. You must successfully log in before adding a new profile."
-
