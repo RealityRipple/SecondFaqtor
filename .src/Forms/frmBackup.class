@@ -257,7 +257,7 @@ Public Sub txtImportFile_Change()
   Dim sFile As ZipFile
 
   txtImportFile.ClearButton = txtImportFile.Text
-  ImportedFiles = New ZipFiles[]
+  ImportedFiles = New ZipFile[]
   sPath = txtImportFile.Text
   If Not sPath Then Return
   If Not Exist(sPath) Then Return
