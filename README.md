@@ -1,10 +1,10 @@
 # ![](https://github.com/RealityRipple/SecondFaqtor/raw/master/key.png) SecondFaqtor
 Two-Factor authentication on your Linux PC, backed by AES-256 security.
 
-#### Version 1.2.1
+#### Version 1.2.2
 > Author: Andrew Sachen  
 > Created: February 2, 2020  
-> Updated: August 4, 2021
+> Updated: April 8, 2023
 
 Language: Gambas  
 Compiler: Gambas 3.15.0+
