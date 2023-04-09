@@ -62,7 +62,7 @@ Private Function GetCode(secret As String, size As Integer, algo As Byte, period
 
   Dim offset As Byte
   Dim I, timeSlice, modulo, iRoL, value As Integer
-  Dim hashV As Long
+  Dim hashV, lValue As Long
   Dim hash, ret As String
   Dim secretKey, btime, bSlice, hm, hashPart As Byte[]
 
@@ -92,10 +92,11 @@ Private Function GetCode(secret As String, size As Integer, algo As Byte, period
   For I = 0 To 3
     iRoL = ((3 - I) * 8)
     hashV = hashPart[I]
-    value += CLong(Lsl(hashV, iRoL))
+    lValue = CLong(value) + CLong(Lsl(hashV, iRoL))
+    value = lValue And &7FFFFFFF&
     hashV = 0
+    lValue = 0
   Next
-  value = Value And &7FFFFFFF&
   modulo = 10 ^ size
   ret = (value Mod modulo)
   Return String$(size - Len(ret), "0") & ret
