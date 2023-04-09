@@ -1,7 +1,5 @@
 ' Gambas class file
 
-Export
-
 Inherits UserControl
 
 Public Const _Properties As String = "*,List,Border=True,Mode{Select.*}=Single,ScrollBar{Scroll.*}=Vertical,Sorted"
