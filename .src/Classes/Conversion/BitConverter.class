@@ -14,14 +14,14 @@ Static Public Function GetBytes(inVal As Variant) As Byte[]
     Case gb.Short
       bRet = New Byte[2]
       bRet[0] = (inVal And &FF)
-      bRet[1] = Lsr(CShort(inVal And &FF00&), 8)
+      bRet[1] = Lsr(CShort(inVal And &FF00), 8)
       Return bRet
     Case gb.Integer
       bRet = New Byte[4]
       bRet[0] = (inVal And &FF)
       bRet[1] = Lsr(CInt(inVal And &FF00&), 8)
       bRet[2] = Lsr(CInt(inVal And &FF0000&), 16)
-      bRet[3] = Lsr(CInt(inVal And &FF000000&), 24)
+      bRet[3] = Lsr(CInt(inVal And &FF000000), 24)
       Return bRet
     Case gb.Long
       bRet = New Byte[8]
@@ -32,7 +32,7 @@ Static Public Function GetBytes(inVal As Variant) As Byte[]
       bRet[4] = Lsr(CLong(inVal And &FF00000000&), 32)
       bRet[5] = Lsr(CLong(inVal And &FF0000000000&), 40)
       bRet[6] = Lsr(CLong(inVal And &FF000000000000&), 48)
-      bRet[7] = Lsr(CLong(inVal And &FF00000000000000&), 56)
+      bRet[7] = Lsr(CLong(inVal And &FF00000000000000), 56)
       Return bRet
   End Select
 

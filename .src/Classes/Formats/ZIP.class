@@ -218,7 +218,7 @@ Private Function GenerateExtraField_AES(ver As Byte) As Byte[]
   Dim bAES As Byte[]
 
   bAES = New Byte[]
-  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&9901&)))
+  AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&9901)))
   AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&7&)))
   AddRange(ByRef bAES, BitConverter.GetBytes(CShort(ver)))
   AddRange(ByRef bAES, BitConverter.GetBytes(CShort(&4541&)))
