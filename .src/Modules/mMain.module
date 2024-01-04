@@ -10,6 +10,7 @@ Public Sub Main()
   Dim pass As FrmPassEntry
 
   Randomize
+  Try System.IgnoreOverflow = True
   sImport = Null
   closeMe = CheckBox.None
   If Application.Args.Count > 0 Then
