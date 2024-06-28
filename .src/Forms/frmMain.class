@@ -156,6 +156,8 @@ Private Sub LoadProfileData(ProfileName As String)
 
   If Not ProfileName Then
     proFail = True
+  Else If cSettings.Count = 0 Then
+    proFail = True
   Else If Not cSettings.GetProfileNames.Exist(ProfileName, gb.Binary) Then
     proFail = True
   Endif

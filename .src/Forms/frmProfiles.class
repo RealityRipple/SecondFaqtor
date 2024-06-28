@@ -211,6 +211,10 @@ Private Sub LoadProfileData(ProfileName As String)
     cmdResetProfile.Enabled = False
     Return
   Endif
+  If cSettings.Count = 0 Then
+    LoadProfileData(Null)
+    Return
+  Endif
   If Not cSettings.GetProfileNames.Exist(ProfileName) Then
     LoadProfileData(Null)
     Return

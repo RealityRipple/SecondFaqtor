@@ -293,7 +293,7 @@ Public Sub txtImportFile_Change()
     If Not secretFound Then Continue
     If Not sName Then Continue
     found = False
-    If Not (sProfiles = Null) Then
+    If sProfiles Then
       For I = 0 To sProfiles.Length - 1
         If String.LCase(sProfiles[I]) = String.LCase(sName) Then
           found = True
@@ -351,12 +351,14 @@ Public Sub cmdImport_Click()
   If iItems.Count = 1 Then
     sName = lstImportProfiles.List[iItems[0]]
     bFound = False
-    For I = 0 To sProfiles.Length - 1
-      If String.LCase(sProfiles[I]) = String.LCase(sName) Then
-        bFound = True
-        Break
-      Endif
-    Next
+    If sProfiles Then
+      For I = 0 To sProfiles.Length - 1
+        If String.LCase(sProfiles[I]) = String.LCase(sName) Then
+          bFound = True
+          Break
+        Endif
+      Next
+    Endif
     Message.Title = ("Import Profile?")
     If bFound Then
       If Message.Question(Subst(("Are you sure you want to import the \"&1\" profile?"), sName) & "\n" & ("The existing profile with the same name will be overwritten."), ("&Yes"), ("&No")) = 2 Then Return
@@ -368,12 +370,14 @@ Public Sub cmdImport_Click()
     For I = 0 To iItems.Count - 1
       sName = lstImportProfiles.List[iItems[I]]
       bFound = False
-      For J = 0 To sProfiles.Length - 1
-        If String.LCase(sProfiles[J]) = String.LCase(sName) Then
-          bFound = True
-          Break
-        Endif
-      Next
+      If sProfiles Then
+        For J = 0 To sProfiles.Length - 1
+          If String.LCase(sProfiles[J]) = String.LCase(sName) Then
+            bFound = True
+            Break
+          Endif
+        Next
+      Endif
       sNames &= "\n" & sName
       If bFound Then sNames &= "*"
     Next
@@ -405,12 +409,14 @@ Public Sub cmdImport_Click()
     If (Not sName) Or (Not sSecret) Or (Not sAlg) Or (iDigits = 0) Or (iPeriod = 0) Then Continue
     If iDigits < 6 Or iDigits > 8 Then Continue
     sOldName = Null
-    For J = 0 To sProfiles.Length - 1
-      If String.LCase(sProfiles[J]) = String.LCase(sName) Then
-        sOldName = sProfiles[J]
-        Break
-      Endif
-    Next
+    If sProfiles Then
+      For J = 0 To sProfiles.Length - 1
+        If String.LCase(sProfiles[J]) = String.LCase(sName) Then
+          sOldName = sProfiles[J]
+          Break
+        Endif
+      Next
+    Endif
     If sOldName Then
       If Not cSettings.RemoveProfile(sOldName) Then
         allOK = False
