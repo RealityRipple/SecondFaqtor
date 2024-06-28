@@ -293,12 +293,14 @@ Public Sub txtImportFile_Change()
     If Not secretFound Then Continue
     If Not sName Then Continue
     found = False
-    For I = 0 To sProfiles.Length - 1
-      If String.LCase(sProfiles[I]) = String.LCase(sName) Then
-        found = True
-        Break
-      Endif
-    Next
+    If Not (sProfiles = Null) Then
+      For I = 0 To sProfiles.Length - 1
+        If String.LCase(sProfiles[I]) = String.LCase(sName) Then
+          found = True
+          Break
+        Endif
+      Next
+    Endif
     If found Then
       allChecked = False
       lstImportProfiles.Add(sName)
