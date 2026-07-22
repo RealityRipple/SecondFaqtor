@@ -159,7 +159,7 @@ Private Function GenerateCDR() As Byte[]
     If AEXVersion = 2 Then
       AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(&0&)))
     Else
-      fileCRC = CRC32.ComputeChecksum(sFiles(I).Data)
+      fileCRC = CRC32.ComputeChecksum(sFiles[I].Data)
       AddRange(ByRef bCDR, BitConverter.GetBytes(fileCRC))
     Endif
     AddRange(ByRef bCDR, BitConverter.GetBytes(CInt(sFiles[I].EncryptedLength)))
@@ -169,7 +169,7 @@ Private Function GenerateCDR() As Byte[]
     AddRange(ByRef bExtra, GenerateExtraField_NTFS(sFiles[I]))
     AddRange(ByRef bExtra, GenerateExtraField_AES(AEXVersion))
     bComment = New Byte[]
-    If sFiles[I].Comment Then bComment = ByteString.String8ToByteArray(sFiles(I).Comment)
+    If sFiles[I].Comment Then bComment = ByteString.String8ToByteArray(sFiles[I].Comment)
     AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(bName.Length)))
     AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(bExtra.Length)))
     AddRange(ByRef bCDR, BitConverter.GetBytes(CShort(bComment.Length)))
