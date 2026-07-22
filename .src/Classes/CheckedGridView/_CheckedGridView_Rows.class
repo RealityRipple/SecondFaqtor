@@ -578,7 +578,7 @@ Private Sub Checked_Write(Value As Integer[])
   Dim hView As _CheckedGridView = GetView()
   Dim iRow As Integer
 
-  $hChk.UnCheclAll
+  $hChk.UnCheckAll
   For Each iRow In Value
     $hChk.Check(iRow)
   Next
