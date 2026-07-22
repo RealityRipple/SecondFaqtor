@@ -28,7 +28,7 @@ Public Sub _new(sPathOrName As String, Optional sComment As String = Null, bData
     Accessed = fStat.LastAccess
     Data = New Byte[fStat.Size]
     nFile = Open sPathOrName For Read
-    For I As Long = 0 To nFile.size - 1
+    For I As Long = 0 To Lof(nFile) - 1
       Data[I] = Read #nFile As Byte
     Next
     Close #nFile
